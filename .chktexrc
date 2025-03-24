@@ -1,0 +1,45 @@
+## ChkTex: https://www.nongnu.org/chktex/
+## Docs: file:///home/johnik/%D0%97%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BA%D0%B8/ChkTeX.pdf
+
+
+
+TabSize = 4
+CmdLine
+{
+    -q # remove print version
+    -wall
+    -e16 # Error if math still on end file
+    -n18 # Conflict with babel command "< or "'
+    -n19 # conflict with Ru
+    -n22 # co comment display
+    -n24
+    -n30 # multiple space - conflict with formatting
+    -n46 # Turn off: math $ should replaced by \( 
+}
+
+Silent # ignore (1: Command terminated with space) for 
+{
+    \maketitleguap
+}
+
+UserWarnRegex = { # OverWrite
+    (?!#Always! use! \nmid)\\not! *(\||\\mid)
+
+    # Capitalize section when saying Section 6.
+    (?!#-1:Capitalize! before! references)PCRE:\b(chapter|(sub)?section|theorem|lemma|proposition|corollary|appendix)~\\ref
+    (?!#1:Capitalize! before! references)POSIX:([^[:alnum:]]|^)(chapter|(sub)?section|theorem|lemma|proposition|corollary|appendix)~\\ref
+
+    # Spell it introduction
+    # PCRE:(?i)\bintro\b(?!#Spell! it! out.! This! comment! is! not! used.)
+    # POSIX:([^[:alnum:]]|^)intro([^[:alnum:]]|$)
+
+    ## Pretty tables--see http://texdoc.net/texmf-dist/doc/latex/booktabs/booktabs.pdf
+    #(?!#-2:Use! \toprule,! \midrule,! or! \bottomrule! from! booktabs)\\hline
+    ## This relies on it being on a single line, and not having anything
+    ## else on that line.  With PCRE we could match balanced [] and {},
+    ## but I wonder if it's worth the complexity...
+    #(?!#-2:Vertical! rules! in! tables! are! ugly)\\begin\{(array|tabularx?\*?)\}(\[.*\])?\{.*\|.*\}
+
+    (?!#-3:Optional! arguments! []! inside! optional! arguments! []! must! be! enclosed! in! {})PCRE:\[(?!![^\]\[{}]*{(?!![^\]\[{}]*}))[^\]]*\[
+
+}

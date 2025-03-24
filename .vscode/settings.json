@@ -1,0 +1,46 @@
+{
+      "latex-workshop.latex.outDir": "output/",
+      "latex-workshop.linting.chktex.enabled": true,
+      "latex-workshop.linting.run": "onType",
+      "latex-workshop.linting.chktex.exec.args": [
+        "-wall",
+        "-n22",
+        "-n30",
+        "-e16",
+        "-q",
+        "-l.chktexrc"
+      ],
+      "Lua.diagnostics.disableScheme": [
+        "git"
+      ],
+      "Lua.diagnostics.libraryFiles": "Disable",
+      "Lua.diagnostics.enable": false,
+      "Lua.diagnostics.workspaceDelay": -1,
+      "latex-workshop.intellisense.atSuggestion.trigger.latex": " ",
+      "latex-workshop.latex.autoBuild.run": "onSave",
+      "latex-workshop.latex.autoClean.run": "onFailed",
+      "latex-workshop.latex.clean.subfolder.enabled": true,
+      "latex-workshop.latex.recipe.default": "first",
+      "latex-workshop.latex.recipes": [
+
+        {
+          "name": "Compile Rnw files",
+          "tools": [
+            "rnw2tex",
+            "lualatexmk"
+          ]
+        },
+        {
+          "name": "latexmk (lualatex)",
+          "tools": [
+            "lualatexmk"
+          ]
+        },
+        {
+          "name": "latexmk",
+          "tools": [
+            "latexmk"
+          ]
+        },
+      ],
+  }

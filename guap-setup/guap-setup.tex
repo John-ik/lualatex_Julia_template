@@ -1,0 +1,38 @@
+\usepackage[russian]{babel}
+\usepackage{luacode}
+
+\usepackage{fontspec}
+\setmainfont{CMU Serif} % You can change this to your desired font
+\setmonofont{DejaVu Sans Mono} 
+
+\usepackage{amsmath} % math
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+\usepackage{numerica} % math calc
+
+\usepackage{caption} % caption custom
+
+\usepackage{datetime}
+\newdateformat{digdate}{\THEDAY.\THEMONTH.\THEYEAR}
+
+\usepackage[
+    cachedir=output/_minted
+]{minted}
+\setminted{
+    linenos, % line numbering
+    breaklines, % wrap line if not fit
+    frame=single % line box around
+}
+
+\usepackage{graphicx}
+
+\usepackage{indentfirst} % красная строка
+
+\usepackage{vmargin} % page size and margin
+\setpapersize{A4}
+\setmarginsrb{2cm}{1.5cm}{1cm}{1.5cm}{0pt}{0mm}{0pt}{13mm}
+\directlua{
+    dofile("lua/define_latex.lua")
+    dofile("lua/util.lua")
+}
