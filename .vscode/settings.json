@@ -1,5 +1,5 @@
 {
-      "latex-workshop.latex.outDir": "output/",
+      "latex-workshop.latex.outDir": "_output/",
       "latex-workshop.linting.chktex.enabled": true,
       "latex-workshop.linting.run": "onType",
       "latex-workshop.linting.chktex.exec.args": [
@@ -22,25 +22,27 @@
       "latex-workshop.latex.clean.subfolder.enabled": true,
       "latex-workshop.latex.recipe.default": "first",
       "latex-workshop.latex.recipes": [
-
-        {
-          "name": "Compile Rnw files",
-          "tools": [
-            "rnw2tex",
-            "lualatexmk"
-          ]
-        },
         {
           "name": "latexmk (lualatex)",
           "tools": [
             "lualatexmk"
           ]
-        },
-        {
-          "name": "latexmk",
-          "tools": [
-            "latexmk"
-          ]
-        },
+        }
       ],
+      "latex-workshop.latex.tools": [
+        {
+          "name": "lualatexmk",
+          "command": "latexmk",
+          "args": [
+            "-synctex=1",
+            "-interaction=nonstopmode",
+            "-file-line-error",
+            "-lualatex",
+            "-outdir=%OUTDIR%",
+            "-shell-escape",
+            "%DOC%"
+          ],
+          "env": {}
+        }
+      ]
   }
