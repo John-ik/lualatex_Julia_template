@@ -1,0 +1,9 @@
+name = "JuliaLaTeX"
+uuid = "5e1d74c6-b94b-4d68-976b-9872bec6b4df"
+
+[deps]
+LaTeXDatax = "644dedec-337d-45c6-9a86-27a5fed2b77d"
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
+Latexify = "23fbe1c1-3f47-55db-b15f-69d7ec21a316"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+UnitfulLatexify = "45397f5d-5981-4c77-b2b3-fc36d6e9b728"
