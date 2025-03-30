@@ -1,4 +1,4 @@
-name = "JuliaLaTeX.jl"
+name = "JuliaLaTeX"
 uuid = "5e1d74c6-b94b-4d68-976b-9872bec6b4df"
 
 [deps]
