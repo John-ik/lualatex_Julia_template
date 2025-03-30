@@ -40,6 +40,7 @@
             "-lualatex",
             "-outdir=%OUTDIR%",
             "-shell-escape",
+            "-usepretex=\\def\\OutputDir{%OUTDIR%}",
             "%DOC%"
           ],
           "env": {}

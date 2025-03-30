@@ -1,0 +1,187 @@
+\ProvidesPackage{guap}
+    [2025-03-30 v0.1 SUAI template]
+    
+\wlog{Output dir: \OutputDir. Must defined before process files. For 'latexmk`: '-usepretex=\def\OutputDir{OUTPUT_DIR}'}
+\RequirePackage[russian]{babel}
+% =============                          =============
+% ============= OPTIONS and DEFAULT_VARS =============
+% =============                          =============
+\RequirePackage{kvoptions}
+\SetupKeyvalOptions{
+    family=guap,
+    prefix=guap@
+}
+\DeclareStringOption[datax.tex]{dataxfile}
+
+% Example to default pass key with empty val to color package
+% \DeclareDefaultOption{%
+%     \ifx\CurrentOptionValue\relax
+%         \PackageWarningNoLine{\@currname}{%
+%             Unknown option '\CurrentOption'\MessageBreak
+%             is passed to package 'color'%
+%         }%
+%         % Pass the option to package color.
+%         % Again it is better to expand \CurrentOption.
+%         \expandafter\PassOptionsToPackage
+%         \expandafter{\CurrentOption}{color}%
+%     \else
+%         % Package color does not take options with values.
+%         % We provide the standard LaTeX error.
+%         \@unknownoptionerror
+%     \fi
+% }
+\DeclareDefaultOption{
+    \@unknownoptionerror
+}
+\ProcessKeyvalOptions*
+
+% =============                    =============
+% ============= LOAD BASE PACKAGES =============
+% =============                    =============
+
+% ------------ FONT ------------
+\RequirePackage{fontspec}
+\setmainfont{CMU Serif} % You can change this to your desired font
+\setmonofont{DejaVu Sans Mono} 
+
+% ------------ MATH ------------
+\RequirePackage{amsmath} % math
+\RequirePackage{amssymb}
+\RequirePackage{mathtools}
+
+% ------------- DATA ------------
+\RequirePackage[dataxfile=\guap@dataxfile]{datax}
+\RequirePackage{siunitx}
+\sisetup{
+    per-mode = fraction
+}
+
+% ------------- DATETIME ------------
+\RequirePackage{datetime}
+\newdateformat{digitdate}{\THEDAY.\THEMONTH.\THEYEAR}
+\AtBeginDocument{
+    \date{\digitdate\today}
+}
+% ------------- INLINE_CODE ------------
+\RequirePackage[
+    cachedir=\OutputDir/_minted
+]{minted}
+\setminted{
+    linenos, % line numbering
+    breaklines, % wrap line if not fit
+    frame=single % line box around
+}
+
+% ------------- IMAGE ------------
+\RequirePackage{graphicx}
+
+
+% =============              =============
+% ============= RUSSIAN GOST =============
+% =============              =============
+\RequirePackage{indentfirst} % красная строка
+
+\RequirePackage[a4paper,
+    left=20mm, top=15mm, left=15mm, right=15mm
+]{geometry}
+
+
+% ------------- CAPTION ------------
+\RequirePackage{caption} % caption custom
+\AtBeginDocument{
+    \captionsetup[table]{
+        format=plain,
+        font=small, labelformat=simple, labelsep=colon, % none colon period space quad newline endash
+        justification=raggedright, 
+        singlelinecheck=false, % margin one line too
+        skip=5pt,
+        position=above,
+    } % Customize table captions
+}
+
+
+% =============     =============
+% ============= LUA =============
+% =============     =============
+
+\RequirePackage{luacode}
+\RequireLuaModule{lua.define_latex}
+\RequireLuaModule{lua.util}
+
+% =============                  =============
+% ============= TITLEPAGE SIMPLE =============
+% =============                  =============
+
+\RequireLuaModule{lua.title_simple}
+\newcommand{\underoverline}[3][5cm]{
+    \begin{minipage}{#1}
+        \centering \vspace{1em}
+        #2 \\
+        \vspace{-0.9em}
+        \rule{\textwidth}{0.5pt} \\
+        \vspace{-0.3em}
+        \footnotesize #3
+    \end{minipage}
+}
+
+% Params
+% #1 - Номер кафедры
+% #2 - Должность, уч степень, звание преподавателя 
+% #3 - ФИО преподавателя
+% #4 - Тип работы и номер (Лабораторная работа №1)
+% #5 - Название работы
+% #6 - название курса
+% #7 - ФИО студента(ов) (через запятую)
+\newcommand{\maketitleguapsimple}{
+    \begin{titlepage}
+        \centerline{ГУАП}
+        \vfill
+        \centerline{Кафедра №\getDepartmentNum}
+        \vfill
+        \leftline{ОТЧЕТ}
+        \leftline{ЗАЩИЩЕН С ОЦЕНКОЙ}
+        \vspace{0.7em}
+        \leftline{ПРЕПОДАВАТЕЛЬ}
+        \vspace{1em}
+        
+        
+        \underoverline[6cm]{\getTeacherDegree\vphantom{AА}}{должность, уч. степень, звание}
+        \underoverline[4cm]{\vphantom{AА}}{подпись, дата}
+        \underoverline[6cm]{\getTeacherName}{фамилия, инициалы}
+        
+        \vfill
+        \centerline{\large \getWorkType}
+        \vfill
+        {
+            \centering
+            \large \MakeUppercase{\getWorkName}
+            \par
+        }
+        \vfill
+        \centerline{по курсу:}
+        \vspace{1em}
+        \centerline{\large \MakeUppercase{\getCourseName}}
+        \vfill
+        \vfill
+        \begin{tabular}{lccc}
+            \multicolumn{2}{l}{РАБОТУ \ifmany{\getWorkAuthor}{ВЫПОЛНИЛи}{ВЫПОЛНИЛ}} & & \\
+            
+            \ifmany{\getWorkAuthor}{СТУДЕНТы}{СТУДЕНТ} гр № &
+            \underoverline[1.1cm]{\getWorkAuthorGroup\vphantom{1234}}{\phantom{1234}}
+            \printSignName{\getWorkAuthor}
+            % &
+            % &
+            % \underline{\hspace{4cm}} &
+            % \underline{\hspace{1.5cm}\getWorkAuthor\hspace{1.5cm}} \\
+            
+            &
+            &
+            {\footnotesize подпись, дата} &
+            {\footnotesize фамилия, инициалы}
+        \end{tabular}
+        
+        \vfill
+        \centerline{Санкт-Петербург \the\year}
+    \end{titlepage}
+    \addtocounter{page}{1} % increment page number
+}
