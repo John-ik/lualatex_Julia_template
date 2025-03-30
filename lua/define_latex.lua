@@ -26,7 +26,7 @@ function define_latex_command(function_name, lua_function)
         argRef[i]="#"..i
     end
     
-    local stri = "\\newcommand{\\" .. function_name .. "}[" .. tostring(arg_count) .. "]{" ..
+    local stri = "\\providecommand{\\" .. function_name .. "}[" .. tostring(arg_count) .. "]{" ..
         "\\luafunction" .. i .. "{" ..
         table.concat(argRef,"}{") .. "}}"
     tex.print(stri.."")
