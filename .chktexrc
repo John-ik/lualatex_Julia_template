@@ -20,7 +20,7 @@ CmdLine
 
 Silent # ignore (1: Command terminated with space) for 
 {
-    \maketitleguap
+    \maketitleguapsimple
 }
 
 UserWarnRegex = { # OverWrite
