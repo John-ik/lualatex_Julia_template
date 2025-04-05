@@ -24,7 +24,7 @@ macro test(test::Expr)
 
     key=Expr(:vect, l...)
     out=Expr(:call,Symbol("=>"),key,test)
-    return out
+    return esc(out)
 
 end
 
