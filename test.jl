@@ -3,6 +3,8 @@
 #jl import Pkg; Pkg.add(url="https://github.com/John-ik/lualatex_Julia_template", subdir="JuliaLaTeX")
 #jl Pkg.add(["LaTeXStrings", "Unitful", "UnitfulLatexify", "Latexify","LaTeXDatax"])
 
+include("setupDependencies.jl"); DependencyInstaller.initDependencies()
+
 include("JuliaLaTeX/src/JuliaLaTeX.jl") #hide
 using .JuliaLaTeX   #hide
 
@@ -34,7 +36,21 @@ latexify(H)
 
 
 
-@test ((Ias, α) -> Ias*2 |> eval)=>  :H
+macro test2(test::Expr)
+    # TODO assetations
+
+    lambda=test.args[2]
+    test.args[2]=Expr(:call,:ByRow,lambda)
+    l = lambda.args[1].args|>x->QuoteNode.(x)
+    
+
+    key=Expr(:vect, l...)
+    out=Expr(:call,Symbol("=>"),key,test)
+    return out
+
+end
+
+println(@expandmacro @test ((Ias, α) -> Ias*2 |> eval)=>  :H)
 
 
 transform!(data, 
