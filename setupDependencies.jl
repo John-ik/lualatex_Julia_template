@@ -24,16 +24,48 @@ macro ___collectPkg(func::Expr)
         collectModules(eval(expr.args[2]))
     end
     body.args .|> processExpr
+    local extra= extraDependencies()
+    collectModules.(extra)
+
+    for e in extra
+        push!(body.args,Meta.parse("Pkg.add(\"$e\")"))
+    end
     return func
 end
 
-@___collectPkg function run()
+function extraDependencies()::Vector{String}
+    !isfile("JuliaLaTeX/Project.toml") && return
+
+    isDeps=false
+    extraModules::Vector{String}=[]
+    for line in readlines("JuliaLaTeX/Project.toml")
+        isempty(line) && continue
+        !isDeps && line!="[deps]" && continue
+        isDeps && first(line)=='[' && break
+        isDeps=true
+        line=="[deps]" && continue
+        
+        s=split(line)
+        
+        push!(extraModules,first(s))
+        
+        
+
+    end
+    return extraModules
+end
+
+
+macro __expandPrint(it)
+
+    macroexpand(@__MODULE__,it)
+end
+
+@__expandPrint @___collectPkg function run()
     # Pkg.add(url="https://github.com/John-ik/lualatex_Julia_template", subdir="JuliaLaTeX")
     Pkg.add(["LaTeXStrings", "Unitful", "UnitfulLatexify", "Latexify", "LaTeXDatax"])
     Pkg.add("DataFrames")
     Pkg.add("CSV")
-
-
 
     
     mkpath(dirname(DEPENDENCY_CHECK_FILE))
@@ -43,7 +75,6 @@ end
         end
     end
 end
-
 
 
 const DEPENDENCY_CHECK_FILE = "gitignore/has_dependency"
