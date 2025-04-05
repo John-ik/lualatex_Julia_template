@@ -22,6 +22,13 @@ using Test
     @test "U + 10" == JuliaLaTeX.substitute(f, "I" => 10)
 end
 
+@testset "Greek" begin
+    @test process_greek(latexify(:alpha; env=:raw)) == Lr"\alpha" # works by default
+    @test process_greek(latexify(:(alpha^2); env=:raw)) == Lr"\alpha^{2}" # works by default
+    @test process_greek(Lr"Theta") == Lr"\Theta"
+    @test process_greek(latexify(:(alpha_2); env=:raw)) == Lr"\alpha_{2}"
+end
+
 @testset "Test on power" begin
     str = latexify(:( U^2 ); env=:raw)
     @test JuliaLaTeX.substitute(str, "U" => 2) == "2^{2}"

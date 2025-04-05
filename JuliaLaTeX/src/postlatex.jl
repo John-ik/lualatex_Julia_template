@@ -1,5 +1,3 @@
-using LaTeXStrings, Latexify, Unitful
-
 function toBaseUnit(quantity::Unitful.AbstractQuantity)::Number
     upreferred(quantity) |> ustrip |> float
 end
@@ -8,15 +6,33 @@ function toBaseUnit(quntity::Number)::Number
     quntity
 end
 
-function substitute(str::LaTeXString, old_new_s::Pair...; kwargs...)::LaTeXString
+"""
+Substitute pairs where key and value be latexified, if key is LaTeXString no.
+
+# Example
+```
+result = substitute("U / I", :U => 10, "I" => "1 \\cdot 2") # "\\frac{10}{1 \\cdot 2}"
+```
+"""
+function substitute(str::LaTeXString, old_new_s::Pair...; kwargs_latex...)::LaTeXString
     result = LaTeXString(str)
     for (from, to) in old_new_s
         # if its with unit convert to SI and unit strip
-        to = toBaseUnit(to)
-        result = replace(result, Regex("(?!<=\\w)\\Q$(latexify(from; kwargs...))\\E(?!=\\w)") => latexify(to; kwargs...)) |> LaTeXString
+        if ! (typeof(to) <: AbstractString)
+            to = toBaseUnit(to)
+        end
+        result = replace(result, Regex("(?!<=\\w)\\Q$(latexify(from; kwargs_latex...))\\E(?!=\\w)") => latexify(to; kwargs_latex...)) |> LaTeXString
     end
     
     return result
 end
 
-substitute(str::AbstractString, old_news_S::Pair...; kwargs...)::LaTeXString = substitute(latexify(str; kwargs...), old_news_S...; kwargs...)
+substitute(str::AbstractString, old_news_S::Pair...; kwargs_latex...)::LaTeXString = substitute(latexify(str; kwargs_latex...), old_news_S...; kwargs_latex...)
+
+
+"""
+Replace greek name of vars to LaTeX greek. Theta -> ``\\Theta``
+"""
+function process_greek(str::LaTeXString)::LaTeXString
+    str
+end

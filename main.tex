@@ -6,6 +6,10 @@
 ]{article}
 
 \usepackage[]{guap}
+\usepackage[
+    bookmarks,
+    % unicode
+]{hyperref}
 
 \begin{document}
 
@@ -21,7 +25,16 @@
 
 \maketitleguapsimple
 
+\section{One} \label{section:one}
 Test.
 Скорость света $c = \datax{c}$
+
+Секция один~\ref{section:one}
+
+f(1, 2) = \datax{f(1,2)}
+
+\newcommand{\f}[1]{#1 = \datax{#1}}
+
+\f{f(1,2)}
 
 \end{document}
