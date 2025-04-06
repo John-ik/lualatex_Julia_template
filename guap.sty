@@ -109,7 +109,7 @@
     \InputIfFileExists{\guap@distinctpath/#1}{
         % TRUE
     }{
-        \fbox{Cannot read file \texttt{\guap@distinctpath\detokenize{#1}}}
+        \fbox{Cannot read file \texttt{\guap@distinctpath/\detokenize{#1}}}
         \PackageWarning{guap}{Cannot read file `\guap@distinctpath/#1'}
     }
 }
