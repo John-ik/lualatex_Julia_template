@@ -36,9 +36,10 @@ H = :(I * N / (2R * tan(α)))
 latexify(H)
 
 transform!(data,
-    [:I, :ᾱ] => ByRow((I, ᾱ) -> (calcWith(H, Dict(:I => I, :α => ᾱ))) |> eval) => :H, 
-    @test ((I, ᾱ) -> calcWith(H, :I => I, :α => ᾱ) |> eval) => :H1
+    @byRow ((I, ᾱ) -> calcWith(H, :I => I, :α => ᾱ) |> eval) => :H
 )
+
+dataToLaTeX("gitignore/test/data_table.tex", data)
 # H_mean = mean(data[:, :H])
 # for (u, i) in 
 # LaTeXDatax.datax("datax.tex", "f($(Protocol[1]),$(Protocol[2]))", "123"; permissions="a")

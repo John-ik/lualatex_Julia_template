@@ -1,9 +1,11 @@
 module JuliaLaTeX
 
-using LaTeXStrings, Unitful, UnitfulLatexify, Latexify, LaTeXDatax, DataFrames
+using LaTeXStrings, Unitful, UnitfulLatexify, Latexify, LaTeXDatax, DataFrames, PrettyTables
 using Unitful.DefaultSymbols
 
-export @Lr_str, @test, calcWith, process_greek, substitute
+export @Lr_str, @byRow, calcWith, 
+    dataToLaTeX,
+    process_greek, substitute
 # export  @Lr_str, @test, process_greek, substitute
 
 

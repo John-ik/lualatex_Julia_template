@@ -1,12 +1,12 @@
-macro test(test::Expr)
+macro byRow(pair::Expr)
     # TODO assetations
-    lambda = test.args[2]
-    test.args[2] = Expr(:call, :ByRow, lambda)
+    lambda = pair.args[2]
+    pair.args[2] = Expr(:call, :ByRow, lambda)
     l = lambda.args[1].args |> x -> QuoteNode.(x)
 
 
     key = Expr(:vect, l...)
-    out = Expr(:call, Symbol("=>"), key, test)
+    out = Expr(:call, Symbol("=>"), key, pair)
     return esc(out)
 
 end
