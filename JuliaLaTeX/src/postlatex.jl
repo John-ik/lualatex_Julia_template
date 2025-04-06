@@ -1,11 +1,3 @@
-function toBaseUnit(quantity::Unitful.AbstractQuantity)::Number
-    upreferred(quantity) |> ustrip |> float
-end
-
-function toBaseUnit(quntity::Number)::Number
-    quntity
-end
-
 """
 Substitute pairs where key and value be latexified, if key is LaTeXString no.
 
@@ -15,12 +7,12 @@ result = substitute("U / I", :U => 10, "I" => "1 \\cdot 2") # "\\frac{10}{1 \\cd
 ```
 """
 function substitute(str::LaTeXString, old_new_s::Pair...; kwargs_latex...)::LaTeXString
-    set_default(env=:raw, fmt=FancyNumberFormatter(4))
+    set_default(env=:raw, fmt=FancyNumberFormatter(4), unitformat=:siunitx)
     result = LaTeXString(str)
     for (from, to) in old_new_s
         # if its with unit convert to SI and unit strip
         if ! (typeof(to) <: AbstractString)
-            to = toBaseUnit(to)
+            to = toBaseUnitStrip(to)
         end
         result = replace(result, Regex("(?!<=\\w)\\Q$(latexify(from; kwargs_latex...))\\E(?!=\\w)") => latexify(to; kwargs_latex...)) |> LaTeXString
     end

@@ -24,6 +24,23 @@ function Base.show(io::IO, ::MIME"text/markdown", s::LaTeXString)
     print(io, start * output * theend)
 end
 
+
+function toBaseUnit(quantity::Unitful.AbstractQuantity)::Unitful.AbstractQuantity
+    if dimension(quantity) == NoDims
+        quantity |> float
+    else
+        upreferred(quantity) |> float
+    end
+end
+
+function toBaseUnitStrip(quantity::Unitful.AbstractQuantity)::Number
+    toBaseUnit(quantity) |> ustrip |> float
+end
+
+function toBaseUnitStrip(quntity::Number)::Number
+    quntity
+end
+
 include("cacl.jl")
 include("latex.jl")
 include("postlatex.jl")

@@ -6,8 +6,14 @@
 ]{article}
 
 \usepackage[
-    distinctpath=gitignore/test
+    distinctpath=gitignore/test,
+    dataxfile=gitignore/test/datax
 ]{guap}
+
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{csvsimple}
+
 \usepackage[
     bookmarks,
     % unicode
@@ -44,5 +50,25 @@ f(1, 2) = \datax{f(1,2)}
 \distinctinput{data_table}
 
 \distinctinput{unknown_long}
+
+Second values of I: \datax{table[I,2]}.
+ H = [\datax{table[H,1]}, \datax{table[H,2]}, \datax{table[H,3]} ]
+ alpha = \datax{table[ᾱ,1]}
+
+\section{Константы}
+
+\distinctinput{consts}
+
+\section{Функции}
+
+\distinctinput{formulas}
+
+Формула H \eqref{formula:h}.
+
+\section{Вычисления}
+
+\[
+\datax{calc/H[1]} = \datax{table[H,1]}
+\]
 
 \end{document}
