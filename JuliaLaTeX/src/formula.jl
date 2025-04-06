@@ -31,6 +31,9 @@ function register!(formula::Formula)
     push!(formulaList, formula)
 end
 
+formulaList_reset!() = empty!(formulaList)
+
+
 
 function formulas2LaTeX()
     io = IOContext(IOBuffer())

@@ -20,6 +20,8 @@ function register!(constant::Constant)
     push!(constantList, constant)
 end
 
+constantList_reset!() = empty!(constantList)
+
 
 function constants2LaTeX()
     io = IOContext(IOBuffer())
