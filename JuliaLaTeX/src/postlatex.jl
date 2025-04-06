@@ -15,6 +15,7 @@ result = substitute("U / I", :U => 10, "I" => "1 \\cdot 2") # "\\frac{10}{1 \\cd
 ```
 """
 function substitute(str::LaTeXString, old_new_s::Pair...; kwargs_latex...)::LaTeXString
+    set_default(env=:raw, fmt=FancyNumberFormatter(4))
     result = LaTeXString(str)
     for (from, to) in old_new_s
         # if its with unit convert to SI and unit strip
@@ -23,7 +24,7 @@ function substitute(str::LaTeXString, old_new_s::Pair...; kwargs_latex...)::LaTe
         end
         result = replace(result, Regex("(?!<=\\w)\\Q$(latexify(from; kwargs_latex...))\\E(?!=\\w)") => latexify(to; kwargs_latex...)) |> LaTeXString
     end
-    
+    reset_default()
     return result
 end
 
