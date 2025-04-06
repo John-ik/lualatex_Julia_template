@@ -13,6 +13,9 @@ Base.show(io::IO, ::MIME"text/latex", c::Constant) =
     print(io, "$(c.text) \$ $(c.symbol) = $(latexify(c.quantity; env=:raw, unitformat=:siunitx)) \$")
 
 
+function constantPairs()
+    Dict(zip(getproperty.(constantList, :symbol) .|> LaTeXString, getproperty.(constantList, :quantity)))
+end
 
 register!(constants::Constant...) = register!.(constants)
 
