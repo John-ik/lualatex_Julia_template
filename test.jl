@@ -35,10 +35,9 @@ H = :(I * N / (2R * tan(α)))
 
 latexify(H)
 
-
 transform!(data,
-    [:I, :ᾱ] => ByRow((I, ᾱ) -> (calcBy(H, Dict(:I => I, :α => ᾱ))) |> eval) => :H, 
-    @test ((I, ᾱ) -> calcBy(H, Dict(:I => I, :α => ᾱ)) |> eval) => :H1
+    [:I, :ᾱ] => ByRow((I, ᾱ) -> (calcWith(H, Dict(:I => I, :α => ᾱ))) |> eval) => :H, 
+    @test ((I, ᾱ) -> calcWith(H, :I => I, :α => ᾱ) |> eval) => :H1
 )
 # H_mean = mean(data[:, :H])
 # for (u, i) in 
