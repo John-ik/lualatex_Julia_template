@@ -51,7 +51,7 @@ function formulas2LaTeX(io::IO)
         formula = formulaList[i]
         set_default(label=formula.label)
         show(io, "text/latex", formula)
-        print(io, "")
+        println(io, "\\par")
     end
     reset_default()
     return 
