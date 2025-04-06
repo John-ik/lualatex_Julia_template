@@ -22,9 +22,16 @@ end
 
 function dataToLaTeX(io::IO, data::DataFrame)
     set_default(unitformat=:siunitx, fmt=FancyNumberFormatter(4))
-    local ret = pretty_table(io, Tables.matrix(data) .|> JuliaLaTeX.toBaseUnit .|> latexify .|> LatexCell
+    local ret = pretty_table(io, 
+        Tables.matrix(data) .|> JuliaLaTeX.toBaseUnit .|> latexify .|> LatexCell
         ; backend = Val(:latex), alignment=:c, 
-        header = [string(raw"$",latexify(name; env=:raw), ",\\;", latexify(unit(u)), raw"$") for (name, u) in zip(names(data), data[1, :])] .|>LatexCell)
+        header = [
+            string(raw"$", latexify(name; env=:raw), ",\\;", latexify(unit(u)), raw"$")
+                for (name, u) in zip(names(data), data[1, :])
+            ] .|> LatexCell
+    )
     reset_default()
     return ret
 end
+
+
