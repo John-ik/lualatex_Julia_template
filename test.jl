@@ -32,6 +32,11 @@ register!(
 )
 constants2LaTeX("gitignore/test/consts.tex")
 
+H = :(I * N / (2R * tan(α)))
+register!(
+    Formula("Бла-бла", "h", "H", H)
+)
+formulas2LaTeX("gitignore/test/formulas.tex")
 
 I = [75, 90, 120]*u"mA"
 α_1 = [30.5, 36, 43.5]°
@@ -40,7 +45,6 @@ data = DataFrame(I=I, α_1=α_1, α_2=α_2)
 
 transform!(data, AsTable(r"α") => ByRow(mean) => :ᾱ)
 
-H = :(I * N / (2R * tan(α)))
 
 latexify(H)
 
