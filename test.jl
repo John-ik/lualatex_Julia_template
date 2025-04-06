@@ -32,7 +32,7 @@ register!(
 )
 constants2LaTeX("gitignore/test/consts.tex")
 
-H = :(I * N / (2R * tan(α)))
+H = :(I * N / (2R * tan(ᾱ)))
 register!(
     Formula("Бла-бла", "h", "H", H)
 )
@@ -49,10 +49,16 @@ transform!(data, AsTable(r"α") => ByRow(mean) => :ᾱ)
 latexify(H)
 
 transform!(data,
-    @byRow ((I, ᾱ) -> calcWith(H, :I => I, :α => ᾱ) |> eval) => :H
+    @byRow ((I, ᾱ) -> calcWith(H, :I => I, :ᾱ => ᾱ) |> eval) => :H
+)
+register!(
+    Calculation([:I, :ᾱ], H, :H)
 )
 
 dataToLaTeX("gitignore/test/data_table.tex", data)
+
+table2datax("gitignore/test/datax.tex", data, "table")
+calculation2datax("gitignore/test/datax.tex", data, "a")
 
 # CSV.write("gitignore/test/data.csv", 
 #     data

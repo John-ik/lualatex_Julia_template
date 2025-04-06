@@ -6,7 +6,8 @@ using Unitful.DefaultSymbols
 export @Lr_str, @byRow, calcWith, 
     dataToLaTeX, table2datax,
     process_greek, substitute,
-    Constant, Formula, register!, constants2LaTeX, formulas2LaTeX
+    Constant, Formula, register!, constants2LaTeX, formulas2LaTeX,
+    Calculation, calculation2datax
 # export  @Lr_str, @test, process_greek, substitute
 
 
@@ -28,5 +29,6 @@ include("latex.jl")
 include("postlatex.jl")
 include("constant.jl")
 include("formula.jl")
+include("calculation.jl")
 
 end
