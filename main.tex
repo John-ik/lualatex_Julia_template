@@ -1,11 +1,13 @@
 %!TeX program = LuaLaTeX
 \documentclass[
     oneside, % no mirrored margin for twosided book
-    % draft, % no figure, no listings, draw Bold where box overflow (debug)
+    draft, % no figure, no listings, draw Bold where box overflow (debug)
     12pt % fontsize
 ]{article}
 
-\usepackage[]{guap}
+\usepackage[
+    distinctpath=gitignore/test
+]{guap}
 \usepackage[
     bookmarks,
     % unicode
@@ -36,5 +38,11 @@ f(1, 2) = \datax{f(1,2)}
 \newcommand{\f}[1]{#1 = \datax{#1}}
 
 \f{f(1,2)}
+
+\section{Биг дата}
+
+\distinctinput{data_table}
+
+\distinctinput{unknown_long}
 
 \end{document}

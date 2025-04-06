@@ -12,6 +12,7 @@
     prefix=guap@
 }
 \DeclareStringOption[datax.tex]{dataxfile}
+\DeclareStringOption[.]{distinctpath}
 
 % Example to default pass key with empty val to color package
 % \DeclareDefaultOption{%
@@ -99,6 +100,19 @@
     } % Customize table captions
 }
 
+
+% =============         =============
+% ============= COMMAND =============
+% =============         =============
+
+\newcommand{\distinctinput}[1]{
+    \InputIfFileExists{\guap@distinctpath/#1}{
+        % TRUE
+    }{
+        \fbox{Cannot read file \texttt{\guap@distinctpath\detokenize{#1}}}
+        \PackageWarning{guap}{Cannot read file `\guap@distinctpath/#1'}
+    }
+}
 
 % =============     =============
 % ============= LUA =============
