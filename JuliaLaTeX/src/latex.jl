@@ -35,3 +35,20 @@ function dataToLaTeX(io::IO, data::DataFrame)
 end
 
 
+function table2datax(data::DataFrame, name::String)
+    io = IOContext(IOBuffer())
+    table2datax(io, data, name)
+    return String(take!(io.io))
+end
+function table2datax(filename::String, data::DataFrame, name::String, permissions::String="w")
+    open(filename, permissions) do io
+        table2datax(io, data, name, permissions)
+    end
+end
+function table2datax(io::IO, data::DataFrame, name::String, permissions::String="w")
+    set_default(unitformat=:siunitx, fmt=FancyNumberFormatter(4))
+    indexes = ["$name[$(names(data, coli)[1]),$rowi]" for coli=1:ncol(data) for rowi=1:nrow(data)]
+    values  = [data[rowi, coli] for coli=1:ncol(data) for rowi=1:nrow(data)] .|> JuliaLaTeX.toBaseUnit .|> latexify
+    LaTeXDatax.datax(io, indexes, values; permissions)
+    reset_default()
+end

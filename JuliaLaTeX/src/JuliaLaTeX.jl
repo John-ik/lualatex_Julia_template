@@ -4,8 +4,9 @@ using LaTeXStrings, Unitful, UnitfulLatexify, Latexify, LaTeXDatax, DataFrames, 
 using Unitful.DefaultSymbols
 
 export @Lr_str, @byRow, calcWith, 
-    dataToLaTeX,
-    process_greek, substitute
+    dataToLaTeX, table2datax,
+    process_greek, substitute,
+    Constant, register!, constants2LaTeX
 # export  @Lr_str, @test, process_greek, substitute
 
 
@@ -25,5 +26,6 @@ end
 include("cacl.jl")
 include("latex.jl")
 include("postlatex.jl")
+include("constant.jl")
 
 end
