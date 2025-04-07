@@ -5,6 +5,7 @@ struct Constant
     
     Constant(text, symbol, quantity::Quantity) = new(text, symbol, quantity)
     Constant(text, symbol, number::Number)     = new(text, symbol, number * u"one")
+    Constant(text, symbol::Symbol)     = new(text, string(symbol),Core.eval( JuliaLaTeX.get_caller_module(2),symbol))
 end
 
 constantList = Vector{Constant}([])
@@ -16,7 +17,7 @@ Base.show(io::IO, ::MIME"text/latex", c::Constant) =
 function constantPairs()
     Dict(zip(getproperty.(constantList, :symbol) .|> LaTeXString, getproperty.(constantList, :quantity)))
 end
-
+reset_list!(::Type{Constant}) = empty!(constantList)
 register!(constants::Constant...) = register!.(constants)
 
 function register!(constant::Constant)
@@ -32,6 +33,7 @@ function constants2LaTeX()
     return String(take!(io.io))
 end
 function constants2LaTeX(filename::String, permissions::String="w")
+    mkpath(dirname(filename))
     open(filename, permissions) do io
         constants2LaTeX(io)
     end

@@ -15,6 +15,7 @@ function dataToLaTeX(data::DataFrame)
 end
 
 function dataToLaTeX(filename::String, data::DataFrame, permissions::String="w")
+    mkpath(dirname(filename))
     open(filename, permissions) do io
         dataToLaTeX(io, data)
     end
@@ -41,6 +42,7 @@ function table2datax(data::DataFrame, name::String)
     return String(take!(io.io))
 end
 function table2datax(filename::String, data::DataFrame, name::String, permissions::String="w")
+    mkpath(dirname(filename))
     open(filename, permissions) do io
         table2datax(io, data, name, permissions)
     end

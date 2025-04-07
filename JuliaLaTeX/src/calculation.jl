@@ -7,6 +7,7 @@ end
 calculationList = Vector{Calculation}([])
 
 register!(calc::Calculation...) = register!.(calc)
+reset_list!(::Type{Calculation})=empty!(calculationList)
 
 function register!(calculation::Calculation)
     push!(calculationList, calculation)

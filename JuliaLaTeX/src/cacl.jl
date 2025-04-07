@@ -24,8 +24,8 @@ function addVariables(ex, vars::Pair{Symbol,<:Real}...)
     return block
 end
 
-function get_caller_module(stackLevel::Int=4)
-    linfo = stacktrace()[stackLevel].linfo
+function get_caller_module(stackLevel::Int=3)
+    linfo = stacktrace()[stackLevel+1].linfo
     typeof(linfo) == Core.MethodInstance && return linfo.def.module
     return Main
 end

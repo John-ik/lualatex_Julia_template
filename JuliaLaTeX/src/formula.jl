@@ -3,6 +3,10 @@ struct Formula
     label::String # TODO: special type to check label
     symbol::String
     f::Expr
+    Formula(text, symbol::Symbol) = new(text, string(symbol),string(symbol), Core.eval(JuliaLaTeX.get_caller_module(2), symbol))
+    Formula(text, repl::String,symbol::Symbol) = new(text, string(symbol),repl, Core.eval(JuliaLaTeX.get_caller_module(2), symbol))
+    Formula(text, label::String,symbol::String, f::Expr) = new(text, label,symbol,f)
+    Formula(text, symbol::Symbol, f::Expr) = new(text, string(symbol), string(symbol), f)
 end
 
 @latexrecipe function f(formula::Formula; label::String="")
@@ -10,7 +14,9 @@ end
 
     env --> :eq
     # return quote $label $(formula.symbol) = $(formula.f) end
-    expr = quote $(formula.symbol) = $(formula.f) end
+    expr = quote
+        $(formula.symbol) = $(formula.f)
+    end
     if label == ""
         return Expr(:latexifymerge, expr)
     else
@@ -25,6 +31,7 @@ end
 
 formulaList = Vector{Formula}([])
 
+reset_list!(::Type{Formula}) = empty!(formulaList)
 register!(formulas::Formula...) = register!.(formulas)
 
 function register!(formula::Formula)
@@ -54,5 +61,5 @@ function formulas2LaTeX(io::IO)
         println(io, "\\par")
     end
     reset_default()
-    return 
+    return
 end
