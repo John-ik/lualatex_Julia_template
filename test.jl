@@ -11,48 +11,80 @@ include("JuliaLaTeX/src/JuliaLaTeX.jl") #hide
 using .JuliaLaTeX   #hide
 
 #jl using JuliaLaTeX
-using LaTeXStrings, Unitful, UnitfulLatexify, Latexify, LaTeXDatax, DataFrames, CSV  #hide
+using LaTeXStrings, Unitful, UnitfulLatexify, Latexify, LaTeXDatax, DataFrames  #hide
+import CSV
 import Unitful.DefaultSymbols    #hide
 ° = Unitful.DefaultSymbols.°
-import Statistics; mean = Statistics.mean;   #hide
+import Statistics;
+mean = Statistics.mean;   #hide
 
+reset_list!(Constant)
+reset_list!(Formula)
+reset_list!(Calculation)
 
-const N = 36u"one"
-const R = 20u"cm"
-const v = 50u"Hz"
-const U = 12u"V"
-const K̇ = 4.5e-7u"1/m"
+const r_a = 15u"mm"
+const r_k = 7u"mm"
+const n_0 = 1800u"one"
+const mu_0 = (4 * pi * (10^(-7))) * u"H/m"
+
+const theta_U = 0.375u"V"
+const theta_I = 0.01u"A"
+const theta_R = 1u"mm"
+
+R_formula = :((r_a - r_k) / 2)
+const R = Core.eval(@__MODULE__, R_formula)
 
 register!(
-    Constant("число витков", "N", N),
-    Constant("радиус", "R", R),
-    Constant("частота", Lr"\nu", v),
-    Constant("напряжение", "U", U),
-    Constant("коэффицент установки", Lr"K\dot", K̇)
+    Constant("радиус катода", :r_k),
+    Constant("радиус анода", :r_a),
+    Constant("число витков на единицу длины", :n_0),
+    Constant("магнитная постоянная", "{\\mu}_0", mu_0),
+    Constant("Систематическая погрешность вольтметра", "\\theta_U", theta_U),
+    Constant("Систематическая погрешность амперметра", "\\theta_I", theta_I),
+    Constant("Систематическая погрешность длины", "\\theta_R", theta_R),
 )
 constants2LaTeX("gitignore/test/consts.tex")
 
-H = :(I * N / (2R * tan(ᾱ)))
+# JuliaLaTeX.formulaList=Vector{Formula}[]
+# JuliaLaTeX.constantList=Vector{Constant}[]
+
+em = :((2 * U) / (mu_0^2 * R^2 * n_0^2 * I_c^2))
 register!(
-    Formula("Бла-бла", "h", "H", H)
+    Formula("Радиус кривизны траектории электрона", "R", "R", R_formula),
+    Formula("Удельный заряд электрона", "\\frac{e}{m}", :em)
 )
 formulas2LaTeX("gitignore/test/formulas.tex")
 
-I = [75, 90, 120]*u"mA"
+I = [75, 90, 120] * u"mA"
 α_1 = [30.5, 36, 43.5]°
 α_2 = [30, 34.5, 41.5]°
-data = DataFrame(I=I, α_1=α_1, α_2=α_2)
-
-transform!(data, AsTable(r"α") => ByRow(mean) => :ᾱ)
 
 
-latexify(H)
+macro labaPath(path)
+    :("gitignore/1/" * $path)
+end
+
+
+# u10 = CSV.read(@labaPath("data/10.csv"), DataFrame)
+# u14 = CSV.read(@labaPath("data/14.csv"), DataFrame)
+
+
+dataToCalc = [
+    (0.9u"A", 10u"V"),
+    (0.9u"A", 14u"V")
+]
+
+data= DataFrame(U=getindex.(dataToCalc,2),I_c=getindex.(dataToCalc,1))
+
+# calcEm=dataToCalc.|> x-> calcWith(em,:I=>x.first,:U=>x.second)
+
+
 
 transform!(data,
-    @byRow ((I, ᾱ) -> calcWith(H, :I => I, :ᾱ => ᾱ) |> eval) => :H
+    @byRow ((I_c, U) -> calcWith(em, :I_c => I_c, :U => U) |> eval) => :em
 )
 register!(
-    Calculation([:I, :ᾱ], H, :H)
+    Calculation([:I_c, :U], em, :em)
 )
 
 dataToLaTeX("gitignore/test/data_table.tex", data)
