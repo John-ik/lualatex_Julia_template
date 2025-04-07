@@ -66,6 +66,7 @@ end
     Pkg.add(["LaTeXStrings", "Unitful", "UnitfulLatexify", "Latexify", "LaTeXDatax"])
     Pkg.add("DataFrames")
     Pkg.add("CSV")
+    Pkg.add("Symbolics")
 
     
     mkpath(dirname(DEPENDENCY_CHECK_FILE))
@@ -99,7 +100,7 @@ if @isdefined __init__
     println("Module", Base.function_module(__init__))
 end
 function main()
-    # run()
+    run()
     validDependencies()
 end
 
