@@ -1,5 +1,5 @@
-require "define_latex"
-require "util"
+lrequire("define_latex")
+lrequire("util")
 
 titlePageInfo={
     departmentNum="unset",
