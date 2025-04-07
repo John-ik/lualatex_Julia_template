@@ -9,25 +9,36 @@ end
 
 struct Constant
     text::String
-    symbol::String
+    displayName::String
+    symbol::Symbol
     quantity::Quantity
     
-    Constant(text, symbol, quantity::Quantity) = new(text, symbol, quantity)
-    Constant(text, symbol, number::Number)     = new(text, symbol, number * u"one")
-    Constant(text, symbol::Symbol)     = new(text, string(symbol),Core.eval( JuliaLaTeX.get_caller_module(2),symbol))
+    Constant(text, symbol, quantity::Quantity) = new(text, filterName(symbol),:none, quantity)
+    Constant(text, symbol, number::Number)     = new(text, filterName(symbol),:none, number * u"one")
+    Constant(text, symbol::Symbol)     = new(text, filterName(string(symbol)),symbol,Core.eval( JuliaLaTeX.get_caller_module(2),symbol))
+    Constant(text,symbol, sym::Symbol)     = new(text, filterName(symbol),sym,Core.eval( JuliaLaTeX.get_caller_module(2),sym))
 end
+
+filterName(s)=join([s...] .|> x->haskey(Latexify.unicodedict,x) ? Latexify.unicodedict[x] : x)
 
 constantList = Vector{Constant}([])
 
-Base.show(io::IO, ::MIME"text/latex", c::Constant) = 
-    print(io, "$(c.text) \$ $(c.symbol) = $(latexify(c.quantity; env=:raw, unitformat=:siunitx)) \$")
+Base.show(io::IO, ::MIME"text/latex", c::Constant) = begin
+    v=haskey(constantAliases,c.symbol) ? begin
+        l=[constantAliases[c.symbol],typeof(c.quantity).parameters[3].instance]
+        string(latexify.(l; env=:raw, unitformat=:siunitx)...)
+    end : latexify(c.quantity; env=:raw, unitformat=:siunitx)
+    s=c.displayName
+    @show s
+    print(io, "$(c.text) \$ $(s) = $(v) \$")
+end
 
 function aliasUnwrap(value::Number,symbol::Symbol)
     return haskey(constantAliases, symbol) ? constantAliases[symbol] : value
 end
 
 function constantPairs()
-    Dict(constantList.|> (x->LaTeXString(x.symbol)=>x.quantity))
+    Dict(constantList.|> (x->LaTeXString(x.displayName)=>x.quantity))
 end
 reset_list!(::Type{Constant}) = empty!(constantList)
 register!(constants::Constant...) = register!.(constants)

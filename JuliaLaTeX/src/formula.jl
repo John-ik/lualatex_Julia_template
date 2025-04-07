@@ -1,7 +1,7 @@
 struct Formula
     text::String
     label::String # TODO: special type to check label
-    symbol::String
+    displayName::String
     f::Expr
     dependsOn::Dict{Symbol,Expr}
     Formula(text, symbol::Symbol) = new(text, string(symbol),string(symbol), Core.eval(JuliaLaTeX.get_caller_module(2), symbol),Dict())
@@ -26,7 +26,7 @@ module NoneModule end
     # return quote $label $(formula.symbol) = $(formula.f) end
     f=first(JuliaLaTeX.inlineConstAndVars(formula.f,formula.dependsOn;m=NoneModule))
     expr = quote
-        $(formula.symbol) = $(f)
+        $(formula.displayName) = $(f)
     end
     if label == ""
         return Expr(:latexifymerge, expr)

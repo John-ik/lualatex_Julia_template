@@ -55,15 +55,17 @@ em = :((2 * U) / (μ_0^2 * R^2 * n_0^2 * I_c^2))
 
 
 
-# theta_em = :(em * (theta_U/U + (2theta_I)/I_c))
+thetaem = :(em * (theta_U/U + (2theta_I)/I_c+ (2theta_R)/R))
 
-# JuliaLaTeX.constantAliases[:em]=:(e/m)
-# dependsOn=JuliaLaTeX.dependsOn
+JuliaLaTeX.constantAliases[:em]=:(e/m)
+dependsOn=JuliaLaTeX.dependsOn
 
 register!(
     Formula("Радиус кривизны траектории электрона", "R", "R", R_formula),
     Formula("Удельный заряд электрона", "\\frac{e}{m}", :em),
-    # dependsOn(Formula("Cистематической погрешность удельный заряд электрона", "\\theta_{\\frac{e}{m}}", :theta_em),:em=>:(e/m))
+    dependsOn(
+        Formula("Cистематической погрешность удельный заряд электрона", "\\theta_{\\frac{e}{m}}", :thetaem),
+        :em=>:(e/m))
 )
 formulas2LaTeX("gitignore/test/formulas.tex")
 
@@ -83,7 +85,7 @@ end
 
 dataToCalc = [
     (0.9u"A", 10u"V"),
-    (0.9u"A", 14u"V")
+    (0.96u"A", 14u"V")
 ]
 
 data= DataFrame(U=getindex.(dataToCalc,2),I_c=getindex.(dataToCalc,1))
@@ -96,11 +98,11 @@ transform!(data,
     @byRow ((I_c, U) -> calcWith(em, :I_c => I_c, :U => U) |> eval) => :em
 )
 transform!(data,
-    @byRow ((em,I_c, U) -> calcWith(theta_em, :I_c => I_c, :U => U, :em=>em) |> eval) => :theta_em
+    @byRow ((em,I_c, U) -> calcWith(thetaem, :I_c => I_c, :U => U, :em=>em) |> eval) => :thetaem
 )
 register!(
     Calculation([:I_c, :U],  :em),
-    Calculation([:em,:I_c, :U], :theta_em)
+    Calculation([:em,:I_c, :U], :thetaem)
 )
 
 dataToLaTeX("gitignore/test/data_table.tex", data)
