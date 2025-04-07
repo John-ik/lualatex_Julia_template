@@ -25,7 +25,7 @@ function dataToLaTeX(io::IO, data::DataFrame)
     set_default(unitformat=:siunitx, fmt=FancyNumberFormatter(4))
     local ret = pretty_table(io, 
         Tables.matrix(data) .|> JuliaLaTeX.toBaseUnitStrip .|> latexify .|> LatexCell
-        ; backend = Val(:latex), alignment=:c, 
+        ; backend = Val(:latex), alignment=:c,  vlines=:all,
         header = [
             string(raw"$", latexify(name; env=:raw), ",\\;", latexify(unit(u)), raw"$")
                 for (name, u) in zip(names(data), data[1, :])

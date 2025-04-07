@@ -2,12 +2,14 @@ struct Calculation
     from::Vector{Symbol}
     by::Expr
     to::Symbol
+    Calculation(from::Vector{Symbol}, by::Expr, to::Symbol) = new(from, by, to)
+    Calculation(from::Vector{Symbol}, to::Symbol) = new(from, Core.eval(JuliaLaTeX.get_caller_module(2), to), to)
 end
 
 calculationList = Vector{Calculation}([])
 
 register!(calc::Calculation...) = register!.(calc)
-reset_list!(::Type{Calculation})=empty!(calculationList)
+reset_list!(::Type{Calculation}) = empty!(calculationList)
 
 function register!(calculation::Calculation)
     push!(calculationList, calculation)

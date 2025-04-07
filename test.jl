@@ -95,8 +95,12 @@ data= DataFrame(U=getindex.(dataToCalc,2),I_c=getindex.(dataToCalc,1))
 transform!(data,
     @byRow ((I_c, U) -> calcWith(em, :I_c => I_c, :U => U) |> eval) => :em
 )
+transform!(data,
+    @byRow ((em,I_c, U) -> calcWith(theta_em, :I_c => I_c, :U => U, :em=>em) |> eval) => :theta_em
+)
 register!(
-    Calculation([:I_c, :U], em, :em)
+    Calculation([:I_c, :U],  :em),
+    Calculation([:em,:I_c, :U], :theta_em)
 )
 
 dataToLaTeX("gitignore/test/data_table.tex", data)

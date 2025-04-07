@@ -3,19 +3,30 @@ struct Formula
     label::String # TODO: special type to check label
     symbol::String
     f::Expr
-    Formula(text, symbol::Symbol) = new(text, string(symbol),string(symbol), Core.eval(JuliaLaTeX.get_caller_module(2), symbol))
-    Formula(text, repl::String,symbol::Symbol) = new(text, string(symbol),repl, Core.eval(JuliaLaTeX.get_caller_module(2), symbol))
-    Formula(text, label::String,symbol::String, f::Expr) = new(text, label,symbol,f)
-    Formula(text, symbol::Symbol, f::Expr) = new(text, string(symbol), string(symbol), f)
+    dependsOn::Dict{Symbol,Expr}
+    Formula(text, symbol::Symbol) = new(text, string(symbol),string(symbol), Core.eval(JuliaLaTeX.get_caller_module(2), symbol),Dict())
+    Formula(text, repl::String,symbol::Symbol) = new(text, string(symbol),repl, Core.eval(JuliaLaTeX.get_caller_module(2), symbol),Dict())
+    Formula(text, label::String,symbol::String, f::Expr) = new(text, label,symbol,f,Dict())
+    Formula(text, symbol::Symbol, f::Expr) = new(text, string(symbol), string(symbol), f,Dict())
+end
+function dependsOn(f::Formula,other::Union{Pair{Symbol,Expr},Symbol}...)
+    local flat(p::Pair{Symbol,Expr})=p
+    local flat(symbol::Symbol)=symbol=>Core.eval(JuliaLaTeX.get_caller_module(3), symbol)
+    for (k,v) in [flat.(other)...]
+        f.dependsOn[k]=v
+    end
+    return f
 end
 
+module NoneModule end
 @latexrecipe function f(formula::Formula; label::String="")
     # TODO: using label type
 
     env --> :eq
     # return quote $label $(formula.symbol) = $(formula.f) end
+    f=first(JuliaLaTeX.inlineConstAndVars(formula.f,formula.dependsOn;m=NoneModule))
     expr = quote
-        $(formula.symbol) = $(formula.f)
+        $(formula.symbol) = $(f)
     end
     if label == ""
         return Expr(:latexifymerge, expr)
