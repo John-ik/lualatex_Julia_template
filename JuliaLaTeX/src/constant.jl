@@ -1,3 +1,12 @@
+
+constantAliases=Dict{Symbol,Expr}()
+macro alias(expr::Expr,unit::Expr)
+    @assert (expr.head==:const ||expr.head==:global) "'const' or 'global' statement expected"
+    global constantAliases[expr.args[1].args[1]]=expr.args[1].args[2];
+    expr.args[1].args[2]=Expr(:call,:*,expr.args[1].args[2],unit)
+    return esc(expr)
+end
+
 struct Constant
     text::String
     symbol::String
@@ -13,9 +22,12 @@ constantList = Vector{Constant}([])
 Base.show(io::IO, ::MIME"text/latex", c::Constant) = 
     print(io, "$(c.text) \$ $(c.symbol) = $(latexify(c.quantity; env=:raw, unitformat=:siunitx)) \$")
 
+function aliasUnwrap(value::Number,symbol::Symbol)
+    return haskey(constantAliases, symbol) ? constantAliases[symbol] : value
+end
 
 function constantPairs()
-    Dict(zip(getproperty.(constantList, :symbol) .|> LaTeXString, getproperty.(constantList, :quantity)))
+    Dict(constantList.|> (x->LaTeXString(x.symbol)=>x.quantity))
 end
 reset_list!(::Type{Constant}) = empty!(constantList)
 register!(constants::Constant...) = register!.(constants)

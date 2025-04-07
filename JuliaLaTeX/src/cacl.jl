@@ -40,3 +40,49 @@ calcWith(ex, vars::Pair{Symbol,<:Any}...) = calcWith0(get_caller_module(), ex, v
 calcWith(ex, vars::Pair{Symbol,<:Real}...) = Core.eval(get_caller_module(),addVariables(ex, vars...))
 # calcWith(ex::Number, vars::Pair{Symbol,<:Number}...) = ex
 calcWith(ex, vars::Dict{Symbol,<:Real}) = calcWith0(get_caller_module(), ex, vars...)
+
+
+function inlineConstAndVars(
+    ex::Expr, 
+    vars::Union{Dict{Symbol,Union{<:Number,Expr,Symbol}},Nothing}=nothing;
+
+    stacklevel::Int=0,
+    mapper::Function=(x,k)->x,
+    m::Union{Module,Nothing}=nothing
+    )::Vector
+    local newArgs=[]
+    for arg in ex.args
+        for res in inlineConstAndVars(arg,vars;stacklevel=stacklevel+1,mapper=mapper,m=m)
+            push!(newArgs,res)
+        end
+    end
+    return [Expr(ex.head,newArgs...)]
+end
+function inlineConstAndVars(
+    ex::Symbol, 
+    vars::Union{Dict{Symbol,Union{<:Number,Expr,Symbol}},Nothing}=nothing;
+    
+    stacklevel::Int=0,
+    mapper::Function=(x,k)->x,
+    m::Union{Module,Nothing}=nothing
+    )::Vector
+    
+     nothing!== vars && haskey(vars,ex) && return [mapper(vars[ex],ex);]
+     m= m===nothing ? get_caller_module(stacklevel+2) : m
+     if isdefined(m, ex) 
+        v= Core.eval(m,ex)
+        if typeof(v)<:Number || typeof(v)<:Expr || typeof(v)<:Symbol
+            return [mapper(v,ex);]
+
+        end
+     end
+     return [ex]
+end
+function inlineConstAndVars(ex::Expr, vars::Union{Dict,Nothing}=nothing;
+    stacklevel::Int=0,mapper::Union{Function,Nothing}=nothing,m::Union{Module,Nothing}=nothing)::Vector
+    return inlineConstAndVars(ex,Dict{Symbol,Union{<:Number,Expr,Symbol}}(vars);stacklevel=stacklevel+1)
+end
+function inlineConstAndVars(ex, vars=nothing;
+    stacklevel=0,mapper=nothing,m=nothing)::Vector
+    return [ex]
+end

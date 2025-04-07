@@ -6,7 +6,8 @@ using LaTeXStrings, Unitful, UnitfulLatexify, Latexify, LaTeXDatax, DataFrames, 
 using Unitful.DefaultSymbols
 
 
-export @Lr_str, @byRow, calcWith, 
+export @Lr_str, @byRow, @alias,
+    calcWith, inlineConstAndVars,
     dataToLaTeX, table2datax,
     process_greek, substitute,
     Constant, Formula, register!,reset_list!, constants2LaTeX, formulas2LaTeX,
@@ -27,7 +28,7 @@ end
         return Main.UnitfulLatexify_PrevF(q;:unitformat=>unitformat,:siunitxlegacy=>siunitxlegacy)
     end
     env --> :raw
-    return Expr(:latexifymerge, q.val, "\\qty{", "}{", UnitfulLatexify.NakedUnits(unit(q)), "}")
+    return Expr(:latexifymerge, q.val, "\\unit{", #= "}{", =# UnitfulLatexify.NakedUnits(unit(q)), "}")
 end
 
 
@@ -58,6 +59,16 @@ end
 
 function toBaseUnitStrip(quntity::Number)::Number
     quntity
+end
+
+function inlineConstants(expr::Expr)
+    return inlineConstAndVars(expr;
+    mapper=(v,s)->begin
+        !(typeof(v)<:Number) ? s :
+        JuliaLaTeX.aliasUnwrap(JuliaLaTeX.toBaseUnitStrip(v),s)
+    end,
+    m=Main
+    )[1]
 end
 
 include("cacl.jl")

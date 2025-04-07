@@ -22,10 +22,13 @@ reset_list!(Constant)
 reset_list!(Formula)
 reset_list!(Calculation)
 
+
+const π=pi
 const r_a = 15u"mm"
 const r_k = 7u"mm"
 const n_0 = 1800u"one"
-const mu_0 = (4 * pi * (10^(-7))) * u"H/m"
+# Space is important, just for now, to separate expression and unit
+@alias const μ_0 = (4 * π * (10^(-7))) u"H/m"
 
 const theta_U = 0.375u"V"
 const theta_I = 0.01u"A"
@@ -38,7 +41,7 @@ register!(
     Constant("радиус катода", :r_k),
     Constant("радиус анода", :r_a),
     Constant("число витков на единицу длины", :n_0),
-    Constant("магнитная постоянная", "{\\mu}_0", mu_0),
+    Constant("магнитная постоянная", :μ_0),
     Constant("Систематическая погрешность вольтметра", "\\theta_U", theta_U),
     Constant("Систематическая погрешность амперметра", "\\theta_I", theta_I),
     Constant("Систематическая погрешность длины", "\\theta_R", theta_R),
@@ -48,10 +51,19 @@ constants2LaTeX("gitignore/test/consts.tex")
 # JuliaLaTeX.formulaList=Vector{Formula}[]
 # JuliaLaTeX.constantList=Vector{Constant}[]
 
-em = :((2 * U) / (mu_0^2 * R^2 * n_0^2 * I_c^2))
+em = :((2 * U) / (μ_0^2 * R^2 * n_0^2 * I_c^2))
+
+
+
+# theta_em = :(em * (theta_U/U + (2theta_I)/I_c))
+
+# JuliaLaTeX.constantAliases[:em]=:(e/m)
+# dependsOn=JuliaLaTeX.dependsOn
+
 register!(
     Formula("Радиус кривизны траектории электрона", "R", "R", R_formula),
-    Formula("Удельный заряд электрона", "\\frac{e}{m}", :em)
+    Formula("Удельный заряд электрона", "\\frac{e}{m}", :em),
+    # dependsOn(Formula("Cистематической погрешность удельный заряд электрона", "\\theta_{\\frac{e}{m}}", :theta_em),:em=>:(e/m))
 )
 formulas2LaTeX("gitignore/test/formulas.tex")
 
