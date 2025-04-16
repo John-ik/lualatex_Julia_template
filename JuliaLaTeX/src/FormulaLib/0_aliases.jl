@@ -1,0 +1,1 @@
+const Expression = Union{Expr,Symbol,Number}

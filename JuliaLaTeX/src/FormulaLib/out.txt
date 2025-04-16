@@ -1,0 +1,9 @@
+Evaluatable
+              :base => :(em * (theta_U / U + (2theta_I) / I_c + (2theta_R) / R))
+       :inlineValue => :(((2U) / (((4π) * 10 ^ -7) ^ 2 * ((15 - 7) / 2) ^ 2 * 1800 ^ 2 * I_c ^ 2)) * (0.375 / U + (2 * 0.01) / I_c + (2 * 1) / ((15 - 7) / 2)))
+   :inlineWithUnits => :((Main.UnitSystem.applyUnitTo)((2U) / ((Main.UnitSystem.applyUnitTo)((4π) * 10 ^ -7, H m^-1) ^ 2 * (Main.UnitSystem.applyUnitTo)(((Main.UnitSystem.applyUnitTo)(15, mm) - (Main.UnitSystem.applyUnitTo)(7, mm)) / 2, mm) ^ 2 * (Main.UnitSystem.applyUnitTo)(1800, nothing) ^ 2 * I_c ^ 2), nothing) * ((Main.UnitSystem.applyUnitTo)(0.375, V) / U + (2 * (Main.UnitSystem.applyUnitTo)(0.01, A)) / I_c + (2 * (Main.UnitSystem.applyUnitTo)(1, mm)) / (Main.UnitSystem.applyUnitTo)(((Main.UnitSystem.applyUnitTo)(15, mm) - (Main.UnitSystem.applyUnitTo)(7, mm)) / 2, mm)))
+           :display => :((e / m) * (theta_U / U + (2theta_I) / I_c + (2theta_R) / R))
+ :displayCalculated => :(em * ({:calcLater}(0.375) / U + (2 * {:calcLater}(0.01)) / I_c + (2 * {:calcLater}(1)) / {:calcLater}(:((15 - 7) / 2))))
+               :raw => :($(Expr(:$, :(:em))) * ($(Expr(:$, :theta_U)) / U + (2 * $(Expr(:$, :theta_I))) / I_c + (2 * $(Expr(:$, :theta_R))) / $(Expr(:$, :R))))
+          :resolved => :($(Expr(:quote, ValRef{Symbol("\$:"), Formula}(Formula(em)))) * ($(Expr(:quote, ValRef{:$, Formula}(Formula(theta_U)))) / U + (2 * $(Expr(:quote, ValRef{:$, Formula}(Formula(theta_I))))) / I_c + (2 * $(Expr(:quote, ValRef{:$, Formula}(Formula(theta_R))))) / $(Expr(:quote, ValRef{:$, Formula}(Formula(R))))))
+              :unit => nothing
