@@ -23,13 +23,13 @@ end
 
 function dataToLaTeX(io::IO, data::DataFrame)
     set_default(unitformat=:siunitx, fmt=FancyNumberFormatter(4))
-    local ret = pretty_table(io, 
+    local ret = pretty_table(io,
         Tables.matrix(data) .|> JuliaLaTeX.toBaseUnitStrip .|> latexify .|> LatexCell
-        ; backend = Val(:latex), alignment=:c,  vlines=:all,
-        header = [
+        ; backend=Val(:latex), alignment=:c, vlines=:all,
+        header=[
             string(raw"$", latexify(name; env=:raw), ",\\;", latexify(unit(u)), raw"$")
-                for (name, u) in zip(names(data), data[1, :])
-            ] .|> LatexCell
+            for (name, u) in zip(names(data), data[1, :])
+        ] .|> LatexCell
     )
     reset_default()
     return ret
@@ -49,8 +49,29 @@ function table2datax(filename::String, data::DataFrame, name::String, permission
 end
 function table2datax(io::IO, data::DataFrame, name::String, permissions::String="w")
     set_default(unitformat=:siunitx, fmt=FancyNumberFormatter(4), env=:raw)
-    indexes = ["$name[$(names(data, coli)[1]),$rowi]" for coli=1:ncol(data) for rowi=1:nrow(data)]
-    values  = [data[rowi, coli] for coli=1:ncol(data) for rowi=1:nrow(data)] .|> toBaseUnit .|> latexify
-    LaTeXDatax.datax(io, indexes, values; permissions)
+
+    begin
+        indexes = ["$name[$(names(data, coli)[1]),$rowi]" for coli = 1:ncol(data) for rowi = 1:nrow(data)]
+        values = [data[rowi, coli] for coli = 1:ncol(data) for rowi = 1:nrow(data)] .|> toBaseUnit .|> latexify
+        LaTeXDatax.datax(io, indexes, values; permissions)
+    end
+    begin
+        coltypes = typeof.(eachcol(data))
+
+        indexes = Vector{String}()
+        values = []
+        for c in eachindex(coltypes)
+            
+            coltypes[c] != Vector{Evaluatable} && continue
+            form = names(data, c)[1]
+            for r in 1:nrow(data)
+                push!(indexes, "calc/$form[$r]")
+
+                # f(it::Evaluatable)=it.displayCalculated
+                push!(values, latexify(data[r, c].displayCalculated; env=:raw))
+            end
+        end
+        LaTeXDatax.datax(io, indexes, values; permissions="a")
+    end
     reset_default()
 end

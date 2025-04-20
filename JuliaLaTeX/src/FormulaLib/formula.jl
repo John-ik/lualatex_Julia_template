@@ -66,12 +66,17 @@ mutable struct Formula
         stack = stacktrace()[2]
         m = Main
         typeof(stack.linfo) == Core.MethodInstance && (m = stack.linfo.def.module)
+        resolveNameContext = ReferenceResolutionContext(m = m)
+        resolveNameContext.referenceTypeMap[:($)] = nothing
+        resolveNameContext.referenceTypeMap[Symbol(raw"$:")] = nothing
+        resolveNameContext.referenceTypeMap[Symbol(raw"")] = nothing
+        resolveNameContext.referenceTypeMap[Symbol(raw":")] = DisplayRef
         if typeof(displayName) != Expr
-            displayName = inlineResolved(resolveReferences(displayName, m), :display)
+            displayName = inlineResolved(resolveReferences(displayName, resolveNameContext), :display)
         elseif displayName.head == :quote
-            displayName = inlineResolved(resolveReferences(displayName.args[1], m), :display)
+            displayName = inlineResolved(resolveReferences(displayName.args[1], resolveNameContext), :display)
         else
-            displayName = inlineResolved(resolveReferences(displayName, m), :display)
+            displayName = inlineResolved(resolveReferences(displayName, resolveNameContext), :display)
         end
         return new(name, displayName, Evaluatable(expr, m))
     end
@@ -82,17 +87,24 @@ mutable struct Formula
     end
     Base.show(io::IO, it::Formula) = print(io, "Formula(", it.name, ")")
 end
+using Markdown: Markdown
 
+description(m::Module, it::Formula)::Union{Markdown.MD, Nothing} = begin
+    b = Base.Docs.Binding(m, it.name)
+    Base.Docs.hasdoc(b) ? Base.Docs.doc(b) : nothing
+end
 
 extractKey(it::Formula, ::Val{:display}) = it.displayName
 extractKey(it::Formula, ::Val{:inlineWithUnits}) = Expr(:call, UnitSystem.applyUnitTo, it.expr.inlineWithUnits, it.expr.unit)
 extractKey((it,)::InlineRef{Formula}, ::Val{:inlineValue}) = extractKey(it, Val(:inlineValue))
 
-extractKey((it,)::Union{InlineRef{Formula}, DisplayInlineRef{Formula}}, ::Val{:displayCalculated}) = ValRef(:calcLater,
+extractKey((it,)::Union{DisplayInlineRef{Formula}}, ::Val{:displayCalculated}) = ValRef(:calcLater, #=  InlineRef{Formula},  =#
     Expr(:call, (v) -> begin
             UnitSystem.extractValueUnitFrom(UnitSystem.SI.convertToPreferred(v))[1]
         end, it.expr.inlineWithUnits),
 )
+
+extractKey((it,)::InlineRef{Formula}, v::Val{:displayCalculated}) = extractKey(it, v)
 extractKey(it::Formula, ::Val{:displayCalculated}) = begin
     expr = it.expr
     displayCalculated = expr.displayCalculated

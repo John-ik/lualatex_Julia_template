@@ -1,33 +1,55 @@
-struct Formula
-    text::String
-    label::String # TODO: special type to check label
-    displayName::String
-    f::Expr
-    dependsOn::Dict{Symbol,Expr}
-    Formula(text, symbol::Symbol) = new(text, string(symbol),string(symbol), Core.eval(JuliaLaTeX.get_caller_module(2), symbol),Dict())
-    Formula(text, repl::String,symbol::Symbol) = new(text, string(symbol),repl, Core.eval(JuliaLaTeX.get_caller_module(2), symbol),Dict())
-    Formula(text, label::String,symbol::String, f::Expr) = new(text, label,symbol,f,Dict())
-    Formula(text, symbol::Symbol, f::Expr) = new(text, string(symbol), string(symbol), f,Dict())
-end
-function dependsOn(f::Formula,other::Union{Pair{Symbol,Expr},Symbol}...)
-    local flat(p::Pair{Symbol,Expr})=p
-    local flat(symbol::Symbol)=symbol=>Core.eval(JuliaLaTeX.get_caller_module(3), symbol)
-    for (k,v) in [flat.(other)...]
-        f.dependsOn[k]=v
+
+# module FormulaLib
+include("FormulaLib/init.jl")
+# end
+# Formula = FormulaLib.Formula
+# @usingMacro using .FormulaLib
+
+
+function expand_formulas_macro_with_replacement(__source__::LineNumberNode, __module__::Module, expr, newConstructor)
+    expr = var"@formulas"(__source__, __module__, expr)
+    replaceMaker(it) = it
+    replaceMaker(it::Expr) = replaceMaker(Val(it.head), it)
+    replaceMaker(::Val, it::Expr) = Expr(it.head, (it.args .|> replaceMaker)...)
+    replaceMaker(::Val{:call}, it::Expr) = begin
+        it.args[1] == :Formula ? Expr(:call, newConstructor, it) : expr
     end
+    return replaceMaker(expr)
+end
+
+function FormulaMaker(f::Formula)
+    push!(formulaList, f)
     return f
 end
 
-module NoneModule end
+macro init_formulas(expr)
+    expand_formulas_macro_with_replacement(__source__, __module__, expr, FormulaMaker)
+end
+
+filterName(s) = join([s...] .|> x -> haskey(Latexify.unicodedict, x) ? Latexify.unicodedict[x] : x)
+
+latexifyDisplayName(expr::Symbol) = filterName(string(expr))
+latexifyDisplayName(expr::Number) = latexify(expr)
+latexifyDisplayName(expr::Expr) = @switch expr.head => {
+    :curly =>
+        string(latexifyDisplayName(expr.args[1]), '{', latexifyDisplayName(expr.args[2]), '}'),
+    :call =>
+        string(latexify(Expr(:call, expr.args[1], (expr.args[2:end] .|> latexifyDisplayName)...); env = :raw)),
+    _ => error("Unsupported displayName expr type '$(displayName.head)' -> \"$(displayName)\"");
+}
+
 @latexrecipe function f(formula::Formula; label::String="")
     # TODO: using label type
 
+
+
     env --> :eq
     # return quote $label $(formula.symbol) = $(formula.f) end
-    f=first(JuliaLaTeX.inlineConstAndVars(formula.f,formula.dependsOn;m=NoneModule))
-    expr = quote
-        $(formula.displayName) = $(f)
-    end
+    f = formula.expr.display
+
+    displayName = latexifyDisplayName(formula.displayName)
+
+    expr = Expr(:(=), displayName, f)
     if label == ""
         return Expr(:latexifymerge, expr)
     else
@@ -37,7 +59,8 @@ end
 
 function Base.show(io::IO, ::MIME"text/latex", formula::Formula)
     # iscompact = get(io, :compact, false)::Bool # check if compact provided
-    print(io, "$(formula.text): $(latexify(formula))")
+    desc = description(Main, formula)
+    print(io, "$(desc): $(latexify(formula))")
 end
 
 formulaList = Vector{Formula}([])
@@ -67,7 +90,7 @@ function formulas2LaTeX(io::IO)
     set_default(unitformat=:siunitx)
     for i in eachindex(formulaList)
         formula = formulaList[i]
-        set_default(label=formula.label)
+        set_default(label=formula.name)
         show(io, "text/latex", formula)
         println(io, "\\par")
     end

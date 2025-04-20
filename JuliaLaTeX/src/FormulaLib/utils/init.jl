@@ -1,5 +1,5 @@
 macro TODO()
-    error("Not implemented")
+    return error("Not implemented")
 end
 
 displayFields(it) = [(fieldnames(typeof(it)) .|> x -> try
@@ -8,16 +8,22 @@ catch e
     "CANNOT GET"
 end)...]
 
- writefile(filename::String,v)=begin
-    open(filename,"w") do f
-        show(f,"text/plain",v)
+writefile(filename::String, v) = begin
+    open(filename, "w") do f
+        return show(f, "text/plain", v)
     end
 
     v
- end
+end
 
- writefile(filename::String)=v->writefile(filename,v)
+writefile(filename::String) = v -> writefile(filename, v)
+
+
+macro __CUR_LINE__()
+    return esc(Expr(:quote, __source__))
+end
 
 include("unionVal.jl")
 include("valTuple.jl")
 include("generateConstructor.jl")
+include("usingMacro.jl")

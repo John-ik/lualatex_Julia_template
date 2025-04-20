@@ -8,7 +8,7 @@
 # include("setupDependencies.jl"); DependencyInstaller.initDependencies();
 
 include("JuliaLaTeX/src/JuliaLaTeX.jl") #hide
-using .JuliaLaTeX   #hide
+JuliaLaTeX.@import_exported using .JuliaLaTeX   #hide
 
 #jl using JuliaLaTeX
 using LaTeXStrings, Unitful, UnitfulLatexify, Latexify, LaTeXDatax, DataFrames  #hide
@@ -20,55 +20,48 @@ mean = Statistics.mean;   #hide
 
 reset_list!(Constant)
 reset_list!(Formula)
-reset_list!(Calculation)
 
 
-const π=pi
-const r_a = 15u"mm"
-const r_k = 7u"mm"
-const n_0 = 1800u"one"
-# Space is important, just for now, to separate expression and unit
-@alias const μ_0 = (4 * π * (10^(-7))) u"H/m"
+JuliaLaTeX.UnitSystem.SI.preferredUnit(::typeof(dimension(u"C/kg")))=u"C/kg"
 
-const theta_U = 0.375u"V"
-const theta_I = 0.01u"A"
-const theta_R = 1u"mm"
+const π = pi
+@init_constants begin
+    "радиус анода"
+    r_a = 15u"mm"    #= const =#
+    "радиус катода"
+    r_k = 7u"mm"    #= const =#
+    "число витков на единицу длины"
+    n_0 = 1800u"1/m"    #= const =#
+    "магнитная постоянная"
+    μ_0 = (4 * π * (10^(-7))) * u"H/m"    #= const =#
+    "Систематическая погрешность вольтметра"
+    θ_U = 0.375u"V"    #= const =#
+    "Систематическая погрешность амперметра"
+    θ_I = 0.01u"A"    #= const =#
+    "Систематическая погрешность длины"
+    θ_R = 1u"mm"    #= const =#
 
-R_formula = :((r_a - r_k) / 2)
-const R = Core.eval(@__MODULE__, R_formula)
+end
+macro ignore(it)
+    return it
+end
+@init_formulas begin
 
-register!(
-    Constant("радиус катода", :r_k),
-    Constant("радиус анода", :r_a),
-    Constant("число витков на единицу длины", :n_0),
-    Constant("магнитная постоянная", :μ_0),
-    Constant("Систематическая погрешность вольтметра", "\\theta_U", theta_U),
-    Constant("Систематическая погрешность амперметра", "\\theta_I", theta_I),
-    Constant("Систематическая погрешность длины", "\\theta_R", theta_R),
-)
+    "Радиус кривизны траектории электрона"
+    R = (r_a - r_k) / 2    #= const =#
+    @ignore begin
+        R.expr.inlineWithUnits |> eval |> JuliaLaTeX.setCalculated(R.expr)
+    end
+    "Удельный заряд электрона"
+    em = e / m = (2 * $U) / (μ_0^2 * R^2 * n_0^2 * $I_c^2)    #= const =#
+    "Систематической погрешность удельный заряд электрона"
+    thetaem = θ_{:em} = $:em * (θ_U / $U + (2θ_I) / $I_c + (2θ_R) / R)    #= const =#
+
+end
+
 constants2LaTeX("gitignore/test/consts.tex")
 
-# JuliaLaTeX.formulaList=Vector{Formula}[]
-# JuliaLaTeX.constantList=Vector{Constant}[]
-
-em = :((2 * U) / (μ_0^2 * R^2 * n_0^2 * I_c^2))
-
-
-
-thetaem = :(em * (theta_U/U + (2theta_I)/I_c+ (2theta_R)/R))
-
-JuliaLaTeX.constantAliases[:em]=:(e/m)
-dependsOn=JuliaLaTeX.dependsOn
-
-register!(
-    Formula("Радиус кривизны траектории электрона", "R", "R", R_formula),
-    Formula("Удельный заряд электрона", "\\frac{e}{m}", :em),
-    dependsOn(
-        Formula("Cистематической погрешность удельный заряд электрона", "\\theta_{\\frac{e}{m}}", :thetaem),
-        :em=>:(e/m))
-)
 formulas2LaTeX("gitignore/test/formulas.tex")
-
 I = [75, 90, 120] * u"mA"
 α_1 = [30.5, 36, 43.5]°
 α_2 = [30, 34.5, 41.5]°
@@ -88,27 +81,27 @@ dataToCalc = [
     (0.96u"A", 14u"V")
 ]
 
-data= DataFrame(U=getindex.(dataToCalc,2),I_c=getindex.(dataToCalc,1))
+data = DataFrame(U=getindex.(dataToCalc, 2), I_c=getindex.(dataToCalc, 1))
 
 # calcEm=dataToCalc.|> x-> calcWith(em,:I=>x.first,:U=>x.second)
 
 
 
 transform!(data,
-    @byRow ((I_c, U) -> calcWith(em, :I_c => I_c, :U => U) |> eval) => :em
+    @byRow ((I_c, U) -> @substitute(em, :I_c, :U)) => :em
 )
 transform!(data,
-    @byRow ((em,I_c, U) -> calcWith(thetaem, :I_c => I_c, :U => U, :em=>em) |> eval) => :thetaem
+    @byRow ((em, I_c, U) -> @substitute(thetaem, :I_c, :U)) => :thetaem
 )
-register!(
-    Calculation([:I_c, :U],  :em),
-    Calculation([:em,:I_c, :U], :thetaem)
-)
+# register!(
+#     Calculation([:I_c, :U], em),
+#     Calculation([:em, :I_c, :U], thetaem)
+# )
 
-dataToLaTeX("gitignore/test/data_table.tex", data)
+# dataToLaTeX("gitignore/test/data_table.tex", data)
 
 table2datax("gitignore/test/datax.tex", data, "table")
-calculation2datax("gitignore/test/datax.tex", data, "a")
+# calculation2datax("gitignore/test/datax.tex", data, "a")
 
 # CSV.write("gitignore/test/data.csv", 
 #     data

@@ -1,51 +1,36 @@
 
-constantAliases=Dict{Symbol,Expr}()
-macro alias(expr::Expr,unit::Expr)
-    @assert (expr.head==:const ||expr.head==:global) "'const' or 'global' statement expected"
-    global constantAliases[expr.args[1].args[1]]=expr.args[1].args[2];
-    expr.args[1].args[2]=Expr(:call,:*,expr.args[1].args[2],unit)
-    return esc(expr)
-end
-
 struct Constant
-    text::String
-    displayName::String
-    symbol::Symbol
-    quantity::Quantity
-    
-    Constant(text, symbol, quantity::Quantity) = new(text, filterName(symbol),:none, quantity)
-    Constant(text, symbol, number::Number)     = new(text, filterName(symbol),:none, number * u"one")
-    Constant(text, symbol::Symbol)     = new(text, filterName(string(symbol)),symbol,Core.eval( JuliaLaTeX.get_caller_module(2),symbol))
-    Constant(text,symbol, sym::Symbol)     = new(text, filterName(symbol),sym,Core.eval( JuliaLaTeX.get_caller_module(2),sym))
+    formula::Formula
 end
 
-filterName(s)=join([s...] .|> x->haskey(Latexify.unicodedict,x) ? Latexify.unicodedict[x] : x)
+processReference(name, v::Constant) = processReference(name, v.formula)
 
-constantList = Vector{Constant}([])
+ConstantMaker(args...) = FormulaMaker(Formula(args...))
+ConstantMaker(f::Formula) = begin
+    c = Constant(f)
+    push!(constantList, c)
+    return c
+end
+macro init_constants(expr)
+    expand_formulas_macro_with_replacement(__source__, __module__, expr, ConstantMaker)
+end
+
+constantList = Vector{Constant}()
 
 Base.show(io::IO, ::MIME"text/latex", c::Constant) = begin
-    v=haskey(constantAliases,c.symbol) ? begin
-        l=[constantAliases[c.symbol],typeof(c.quantity).parameters[3].instance]
-        string(latexify.(l; env=:raw, unitformat=:siunitx)...)
-    end : latexify(c.quantity; env=:raw, unitformat=:siunitx)
-    s=c.displayName
-    @show s
-    print(io, "$(c.text) \$ $(s) = $(v) \$")
-end
-
-function aliasUnwrap(value::Number,symbol::Symbol)
-    return haskey(constantAliases, symbol) ? constantAliases[symbol] : value
+    v = latexify(c.formula.expr.display; env=:raw)
+    s = latexifyDisplayName(c.formula.displayName)
+    desc = description(Main, c.formula)
+    u = latexify(c.formula.expr.unit; env=:raw)
+    print(io, "$desc \$ $s = $v $u\$")
 end
 
 function constantPairs()
-    Dict(constantList.|> (x->LaTeXString(x.displayName)=>x.quantity))
+    Dict(constantList .|> (x -> LaTeXString(x.displayName) => x.quantity))
 end
 reset_list!(::Type{Constant}) = empty!(constantList)
 register!(constants::Constant...) = register!.(constants)
 
-function register!(constant::Constant)
-    push!(constantList, constant)
-end
 
 constantList_reset!() = empty!(constantList)
 
@@ -61,6 +46,7 @@ function constants2LaTeX(filename::String, permissions::String="w")
         constants2LaTeX(io)
     end
 end
+
 function constants2LaTeX(io::IO)
     set_default(unitformat=:siunitx)
     for i in eachindex(constantList)

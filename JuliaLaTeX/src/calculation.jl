@@ -1,27 +1,10 @@
-struct Calculation
-    from::Vector{Symbol}
-    by::Expr
-    to::Symbol
-    Calculation(from::Vector{Symbol}, by::Expr, to::Symbol) = new(from, by, to)
-    Calculation(from::Vector{Symbol}, to::Symbol) = new(from, Core.eval(JuliaLaTeX.get_caller_module(2), to), to)
-end
-
-calculationList = Vector{Calculation}([])
-
-register!(calc::Calculation...) = register!.(calc)
-reset_list!(::Type{Calculation}) = empty!(calculationList)
-
-function register!(calculation::Calculation)
-    push!(calculationList, calculation)
-end
-
-calculationList_reset!() = empty!(calculationList)
-
+#= 
 function calculation2datax(io::IO, data::DataFrame, calc::Calculation, permissions::String="a")
     set_default(unitformat=:siunitx, fmt=FancyNumberFormatter(4))
     indexes = ["calc/$(calc.to)[$rowi]" for rowi in 1:nrow(data)]
     indexes2 = ["calcfull/$(calc.to)[$rowi]" for rowi in 1:nrow(data)]
     formula = latexify(calc.by; env=:raw)
+    data
     formula2 = latexify(inlineConstants(calc.by); env=:raw)
     values = [substitute(formula, merge(constantPairs(), Dict(pairs(data[rowi, :])))...) for rowi in 1:nrow(data)]
     values2 = [substitute(formula2, merge(constantPairs(), Dict(pairs(data[rowi, :])))...) for rowi in 1:nrow(data)]
@@ -43,4 +26,4 @@ function calculation2datax(filename::String, data::DataFrame, permissions::Strin
     open(filename, permissions) do io
         calculation2datax(io, data, permissions)
     end
-end
+end =#

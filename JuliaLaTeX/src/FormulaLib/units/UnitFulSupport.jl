@@ -8,7 +8,7 @@ if Core.eval(@__MODULE__, Expr(:isdefined, :Unitful))
     applyUnitTo(value::Number, it::Unitful.Units) = value * it
     applyUnitTo(value::Unitful.Quantity, it::Unitful.Units) = Unitful.uconvert(it, value)
     # applyUnitTo(value::Number, it::Unitful.Quantity) = applyUnitTo(value, extractValueUnitFrom(it)[2])
-    
+
     extractValueUnitFrom(it::Unitful.Quantity) = (it.val, Unitful.unit(it))
     extractValueUnitFrom(it::Unitful.Units) = (nothing, it)
 
@@ -37,6 +37,16 @@ if Core.eval(@__MODULE__, Expr(:isdefined, :Unitful))
             t0 == 0 && return x -> Expr(:call, :+, x, t1)
             t1 == 0 && return x -> Expr(:call, :-, x, t1)
             return x -> Expr(:call, :+, x, -t0, t1)
+        end
+        if typeof(factor) <: Rational
+            if factor.num == 1
+                d = log10(factor.den)
+                if abs(floor(d) - d) <= 0.00001
+                    factor = Expr(:call, :^, 10, Int(d))
+                end
+            end
+        else
+
         end
         t0 == 0 && t1 == 0 && return x -> Expr(:call, :*, x, factor)
         t0 == 0 && return x -> Expr(:call, :+, Expr(:call, :*, x, factor), t1)

@@ -3,7 +3,7 @@
 
 handleFormulaMacro(s::Symbol, expr::Expr) = handleFormulaMacro(Val(s), expr)
 handleFormulaMacro(expr::Expr) = handleFormulaMacro(Val(expr.head), expr)
-handleFormulaMacro(::Val,expr::Expr) = expr
+handleFormulaMacro(::Val, expr::Expr) = expr
 handleFormulaMacro(expr) = expr
 function handleFormulaMacro(::Val{:block}, expr::Expr)
     for i in 1:length(expr.args)
@@ -13,6 +13,12 @@ function handleFormulaMacro(::Val{:block}, expr::Expr)
     return expr
 end
 
+handleFormulaMacro(::Val{:(macrocall)}, expr::Expr) = begin
+    # @show :macrocall, expr.args .|> string
+    string(expr.args[1]) != "Core.var\"@doc\"" && return expr
+    expr.args[4] = handleFormulaMacro(expr.args[4])
+    expr
+end
 function handleFormulaMacro(::Val{:(=)}, expr::Expr)
     value = expr.args[2]
     name = localName = expr.args[1]

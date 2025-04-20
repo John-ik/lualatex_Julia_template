@@ -14,7 +14,9 @@ end
 
 substitute(::Nothing, dict::Dict) = nothing
 substitute(expr::Number, dict::Dict) = expr
-substitute(expr::Unitful.Units, dict::Dict) = expr
+if @isdefined Unitful
+    substitute(expr::Unitful.Units, dict::Dict) = expr
+end
 substitute(expr::Symbol, dict::Dict) = get(dict, expr, expr)
 substitute(expr::Expr, dict::Dict) = haskey(dict, expr) ? dict[expr] : substitute(Val(expr.head), expr, dict)
 function substitute(::Val, expr::Expr, dict::Dict)

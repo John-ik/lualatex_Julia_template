@@ -62,9 +62,9 @@ extractKey((it,)::DisplayRef, val::Val{:inlineValue}) = extractKey(it, Val(:base
 extractKey((it,)::InlineRef, val::Val{:displayCalculated}) = extractKey(it, Val(:display))
 
 
-extractKey(it::Tuple{Symbol, Symbol, Number}, ::Val{:base}) = it[1]
-extractKey(it::Tuple{Symbol, Symbol, Number}, ::Val{:display}) = it[2]
-extractKey(it::Tuple{Symbol, Symbol, Number}, ::Val{:displayCalculated}) = it[2]
-extractKey(it::Tuple{Symbol, Symbol, Number}, ::Val{:inlineValue}) = it[3]
+extractKey(it::Tuple{Symbol, Symbol, <:Number}, ::Val{:base}) = it[1]
+extractKey(it::Tuple{Symbol, Symbol, <:Number}, ::Val{:display}) = it[2]
+extractKey(it::Tuple{Symbol, Symbol, <:Number}, ::Val{:displayCalculated}) = it[2]
+extractKey(it::Tuple{Symbol, Symbol, <:Number}, ::Val{:inlineWithUnits}) = it[3]
 
 
