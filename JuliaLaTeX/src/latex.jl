@@ -32,7 +32,7 @@ function dataToLaTeX(io::IO, data::DataFrame, @nospecialize(nameAliases::Pair...
                     UnitSystem.applyUnitTo(Core.eval(eval_module(),v.inlineWithUnits), v.unit)
                 )
             else
-                JuliaLaTeX.toBaseUnitStrip(v)
+                UnitSystem.extractValueFrom(v)
             end
         )) for v in Tables.matrix(data)]
         ; backend=Val(:latex), alignment=:c, vlines=:all,
