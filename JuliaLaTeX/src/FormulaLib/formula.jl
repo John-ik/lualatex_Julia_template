@@ -27,7 +27,11 @@
             inlineResolved(resolved, :displayCalculated),
             expr,
             resolved,
-            UnitSystem.extractValueUnitFrom(Core.eval(m, unit))[2],# for 1/m
+            UnitSystem.extractValueUnitFrom(try
+                Core.eval(m, unit)
+            catch e
+                error(e)
+            end)[2],# for 1/m
         )
     end
     function Base.show(io::IO, ::MIME"text/plain", it::Evaluatable)
@@ -61,7 +65,7 @@ mutable struct Formula
             displayName::QuoteNode,
             expr::Expression) error(string(name," \ndisplay = ",displayName,"\n eval =",expr)) end =#
     function Formula(name::Symbol,
-        displayName::Expression,
+        displayName::Union{Expression, QuoteNode},
         expr::Expression)
         stack = stacktrace()[2]
         m = Main
@@ -71,7 +75,9 @@ mutable struct Formula
         resolveNameContext.referenceTypeMap[Symbol(raw"$:")] = nothing
         resolveNameContext.referenceTypeMap[Symbol(raw"")] = nothing
         resolveNameContext.referenceTypeMap[Symbol(raw":")] = DisplayRef
-        if typeof(displayName) != Expr
+        if typeof(displayName) == QuoteNode
+            displayName = inlineResolved(resolveReferences(displayName.value, resolveNameContext), :display)
+        elseif typeof(displayName) != Expr
             displayName = inlineResolved(resolveReferences(displayName, resolveNameContext), :display)
         elseif displayName.head == :quote
             displayName = inlineResolved(resolveReferences(displayName.args[1], resolveNameContext), :display)

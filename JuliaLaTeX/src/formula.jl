@@ -19,6 +19,7 @@ end
 
 function FormulaMaker(f::Formula)
     push!(formulaList, f)
+    f.displayName = Symbol(latexifyDisplayName(f.displayName))
     return f
 end
 
@@ -26,16 +27,28 @@ macro init_formulas(expr)
     expand_formulas_macro_with_replacement(__source__, __module__, expr, FormulaMaker)
 end
 
-filterName(s) = join([s...] .|> x -> haskey(Latexify.unicodedict, x) ? Latexify.unicodedict[x] : x)
+transformChar(c::Char) = c == '_' ? c : get(Latexify.unicodedict, c,c)
+filterName(s) = join([s...] .|> transformChar)
 
 latexifyDisplayName(expr::Symbol) = filterName(string(expr))
 latexifyDisplayName(expr::Number) = latexify(expr)
+latexifyDisplayName(expr::String) = expr
 latexifyDisplayName(expr::Expr) = @switch expr.head => {
-    :curly =>
-        string(latexifyDisplayName(expr.args[1]), '{', latexifyDisplayName(expr.args[2]), '}'),
-    :call =>
-        string(latexify(Expr(:call, expr.args[1], (expr.args[2:end] .|> latexifyDisplayName)...); env = :raw)),
-    _ => error("Unsupported displayName expr type '$(displayName.head)' -> \"$(displayName)\"");
+    :curly => begin
+        it = string(latexifyDisplayName(expr.args[1]), '{', latexifyDisplayName(expr.args[2]), '}')
+        @show it
+        it
+    end,
+    :call => begin
+        it = string(latexify(Expr(:call, expr.args[1], (expr.args[2:end] .|> latexifyDisplayName)...); env = :raw))
+        it
+    end,
+    Symbol("'") => begin
+        it = string("{", latexifyDisplayName(expr.args[1]), "}'")
+        # @show it
+        it
+    end,
+    _ => error("Unsupported displayName expr type '$(expr.head)' -> \"$(expr)\"");
 }
 
 @latexrecipe function f(formula::Formula; label::String="")
@@ -48,7 +61,7 @@ latexifyDisplayName(expr::Expr) = @switch expr.head => {
     f = formula.expr.display
 
     displayName = latexifyDisplayName(formula.displayName)
-
+    # @show (formula.displayName => displayName)
     expr = Expr(:(=), displayName, f)
     if label == ""
         return Expr(:latexifymerge, expr)

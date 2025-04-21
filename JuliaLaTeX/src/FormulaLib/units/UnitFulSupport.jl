@@ -42,7 +42,7 @@ if Core.eval(@__MODULE__, Expr(:isdefined, :Unitful))
             if factor.num == 1
                 d = log10(factor.den)
                 if abs(floor(d) - d) <= 0.00001
-                    factor = Expr(:call, :^, 10, Int(d))
+                    factor = Expr(:call, :^, 10, -Int(d))
                 end
             end
         else
@@ -53,7 +53,7 @@ if Core.eval(@__MODULE__, Expr(:isdefined, :Unitful))
         t1 == 0 && return x -> Expr(:call, :*, Expr(:call, :-, x, t0), factor)
         return x -> Expr(:call, :+, Expr(:call, :*, Expr(:call, :-, x, t0), factor), t1)
     end
-    SI.getConvertExpr(value::typeof(Unitful.DefaultSymbols.°)) = x -> :($x * (π \ 180))
+    SI.getConvertExpr(from::typeof(Unitful.DefaultSymbols.°),to::typeof(Unitful.upreferred(Unitful.DefaultSymbols.°))) = x -> :($x * (π / 180))
 
 end
 

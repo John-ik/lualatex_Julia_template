@@ -20,7 +20,7 @@ constantList = Vector{Constant}()
 Base.show(io::IO, ::MIME"text/latex", c::Constant) = begin
     v = latexify(c.formula.expr.display; env=:raw)
     s = latexifyDisplayName(c.formula.displayName)
-    desc = description(Main, c.formula)
+    desc = something(description(Main, c.formula), "")
     u = latexify(c.formula.expr.unit; env=:raw)
     print(io, "$desc \$ $s = $v $u\$")
 end

@@ -3,19 +3,24 @@ DisplayRef = ValRef{:(:)}
 InlineRef = ValRef{:($)}
 DisplayInlineRef = ValRef{Symbol(raw"$:")}
 @enum IgnoreStatus ignoreNoOne ignoreMissing ignoreAll
+const default_STATUS_IGNORE = Dict{Symbol, IgnoreStatus}()
+const default_REFERENCE_MAP::Dict{Symbol, Union{Base.Callable, Nothing}} = Dict(
+    Symbol("") => InlineRef,
+    :($) => nothing,
+    :(:) => DisplayInlineRef,
+    Symbol(raw"$:") => DisplayInlineRef)
 @kwdef mutable struct ReferenceResolutionContext
     m::Module
-    ignoreReferences::Dict{Symbol, IgnoreStatus} = Dict{Symbol, IgnoreStatus}(Symbol(raw":") => ignoreAll)
-    referenceTypeMap::Dict{Symbol, Union{Base.Callable, Nothing}} =
-        Dict(Symbol("") => InlineRef, :($) => nothing, Symbol(raw"$:") => DisplayInlineRef)
+    ignoreReferences::Dict{Symbol, IgnoreStatus} = copy(default_STATUS_IGNORE)
+    referenceTypeMap::Dict{Symbol, Union{Base.Callable, Nothing}} = copy(default_REFERENCE_MAP)
 end
 
 resolveReferences(expr, m::Module) = resolveReferences(expr, ReferenceResolutionContext(m = m))
 resolveReferences(expr, context::ReferenceResolutionContext) = expr
 resolveReferences(expr::Expr, context::ReferenceResolutionContext) = resolveReferences(Val(expr.head), expr, context)
 
-# resolveReferences(::Val, expr::Expr, context::ReferenceResolutionContext) = Expr(expr.head, [resolveReferences(x, m) for x in expr.args]...)
-resolveReferences(::Val{:curly}, expr::Expr, context::ReferenceResolutionContext) = Expr(expr.head, [resolveReferences(x, context) for x in expr.args]...)
+# resolveReferences(v::Val, expr::Expr, context::ReferenceResolutionContext) = error("No impl for $v -> '$expr'")
+resolveReferences(::Union{Val{Symbol("'")}, Val{:curly}}, expr::Expr, context::ReferenceResolutionContext) = Expr(expr.head, [resolveReferences(x, context) for x in expr.args]...)
 resolveReferences(::Val{:call}, expr::Expr, context::ReferenceResolutionContext) = Expr(expr.head, expr.args[1], [resolveReferences(x, context) for x in expr.args[2:end]]...)
 # 
 

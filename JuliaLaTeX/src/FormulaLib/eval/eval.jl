@@ -22,8 +22,12 @@ function get_caller_module(stackLevel::Int=3)
 end
 function calcWith0(evalModule::Module, ex, vars::Pair{Symbol,<:Any}...)
     code = makeFunction(ex, vars...)
-    f = Core.eval(evalModule, code)
-    return Base.invokelatest(f, (last.(vars))...)
+    try
+        f = Core.eval(evalModule, code)
+        return Base.invokelatest(f, (last.(vars))...)
+    catch e
+        error(e)
+    end
 end
 calcWith(ex, vars::Dict{Symbol,<:Any}) = calcWith0(get_caller_module(), ex, vars...)
 calcWith(ex, vars::Pair{Symbol,<:Any}...) = calcWith0(get_caller_module(), ex, vars...)

@@ -4,22 +4,51 @@ function substitute(formula::Formula, args::Pair{Symbol, <:Any}...)
 
     dict = Dict(args...)
     dictUnitLess = Dict([arg[1] => UnitSystem.extractValueUnitFrom(arg[2])[1] for arg in args]...)
+    context = SubstitutionContext(false, false, dictUnitLess, dict)
     for option in supportedInlineOptions
-        expr = substitute(getproperty(c, option), option == :inlineWithUnits ? dict : dictUnitLess)
+        option == :display && continue
+        context.isUnitLess = option != :inlineWithUnits
+        expr = substitute(getproperty(c, option), context)
         setproperty!(c, option, expr)
     end
     return c
 end
-
-
-substitute(::Nothing, dict::Dict) = nothing
-substitute(expr::Number, dict::Dict) = expr
-if @isdefined Unitful
-    substitute(expr::Unitful.Units, dict::Dict) = expr
+mutable struct SubstitutionContext
+    isUnitLess::Bool
+    isCalcLater::Bool
+    unitless::Dict{Symbol, <:Any}
+    withUnits::Dict{Symbol, <:Any}
 end
-substitute(expr::Symbol, dict::Dict) = get(dict, expr, expr)
-substitute(expr::Expr, dict::Dict) = haskey(dict, expr) ? dict[expr] : substitute(Val(expr.head), expr, dict)
-function substitute(::Val, expr::Expr, dict::Dict)
+
+current_dict(ctx::SubstitutionContext) = ctx.isUnitLess ? ctx.unitless : ctx.withUnits
+
+Base.get(ctx::SubstitutionContext, expr, def) =
+    haskey(ctx, expr) ? ctx[expr] : def
+
+Base.haskey(ctx::SubstitutionContext, expr) = haskey(ctx.unitless, expr)
+Base.getindex(ctx::SubstitutionContext, expr) = begin
+    v = getindex(ctx.withUnits, expr)
+    !isa(v, Number) && return v
+    if ctx.isCalcLater || !ctx.isUnitLess
+        v = UnitSystem.SI.convertToPreferred(v)
+        return v
+    end
+    expr = UnitSystem.SI.getConvertExpr(v)
+    v=UnitSystem.extractValueFrom(v)
+    expr===nothing && return v
+    return expr(v)
+end
+
+
+substitute(::Nothing, dict::SubstitutionContext) = nothing
+substitute(i::String, dict::SubstitutionContext) = error(i)
+substitute(expr::Number, dict::SubstitutionContext) = expr
+if @isdefined Unitful
+    substitute(expr::Unitful.Units, dict::SubstitutionContext) = expr
+end
+substitute(expr::Symbol, dict::SubstitutionContext) = get(dict, expr, expr)
+substitute(expr::Expr, dict::SubstitutionContext) = haskey(dict, expr) ? dict[expr] : substitute(Val(expr.head), expr, dict)
+function substitute(::Val, expr::Expr, dict::SubstitutionContext)
     newArgs = []
     for arg in expr.args
         push!(newArgs, substitute(arg, dict))
@@ -27,7 +56,7 @@ function substitute(::Val, expr::Expr, dict::Dict)
     return Expr(expr.head, newArgs...)
 end
 
-function substitute(::Val{:call}, expr::Expr, dict::Dict)
+function substitute(::Val{:call}, expr::Expr, dict::SubstitutionContext)
     newArgs = similar(expr.args)
     newArgs[1] = expr.args[1]
     for i in 2:length(expr.args)
@@ -37,6 +66,23 @@ function substitute(::Val{:call}, expr::Expr, dict::Dict)
 end
 
 
-substitute((it,)::ValRef{:calcLater}, dict::Dict) = substitute(it, dict) |> eval
+function substitute((it,)::ValRef{:calcLater}, ctx::SubstitutionContext)
+    prevU = ctx.isUnitLess
+    try
+        ctx.isUnitLess = false
+        ctx.isCalcLater = true
+        sub = substitute(it, ctx)
+        value = Core.eval(Main, sub)
+        @show sub, value
+        ctx.isUnitLess = prevU
+        ctx.isCalcLater = false
+        # prevU && return UnitSystem.extractValueFrom(value)
+        return value
+    catch e
+        ctx.isUnitLess = prevU
+        ctx.isCalcLater = false
+        error("Error while 'calcLatex' '$it' \n", ctx, "\n", e)
+    end
+end
 
 
