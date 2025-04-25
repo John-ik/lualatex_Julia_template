@@ -11,7 +11,7 @@
     family=guap,
     prefix=guap@
 }
-\DeclareStringOption[datax.tex]{dataxfile}
+\DeclareStringOption{dataxfile}
 \DeclareStringOption[.]{distinctpath}
 
 % Example to default pass key with empty val to color package
@@ -51,7 +51,12 @@
 \RequirePackage{mathtools}
 
 % ------------- DATA ------------
-\RequirePackage[dataxfile=\guap@dataxfile]{datax}
+\ifx\guap@dataxfile\empty
+    \wlog{datax off}
+\else
+    \wlog{datax on path: '\guap@dataxfile'}
+    \RequirePackage[dataxfile=\guap@dataxfile]{datax}
+\fi
 \RequirePackage{siunitx}
 \sisetup{
     per-mode = fraction,
