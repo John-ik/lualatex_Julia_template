@@ -24,15 +24,15 @@ end
 function dataToLaTeX(io::IO, data::DataFrame, @nospecialize(nameAliases::Pair...))
     set_default(unitformat=:siunitx, fmt=FancyNumberFormatter(4))
     nameAliases = Dict(nameAliases...)
-    @show
+    # @show
     local ret = pretty_table(io,
         [LatexCell(latexify(
             if typeof(v) == Evaluatable
-                UnitSystem.extractValueFrom(
+                UnitSystem.extractValue(
                     UnitSystem.applyUnitTo(Core.eval(eval_module(),v.inlineWithUnits), v.unit)
                 )
             else
-                UnitSystem.extractValueFrom(v)
+                UnitSystem.extractValue(v)
             end
         )) for v in Tables.matrix(data)]
         ; backend=Val(:latex), alignment=:c, vlines=:all,
@@ -44,7 +44,7 @@ function dataToLaTeX(io::IO, data::DataFrame, @nospecialize(nameAliases::Pair...
                     # UnitSystem.applyUnitTo(u.inlineWithUnits |> eval,u.unit)
                     latexify(u.unit)
                 else
-                    latexify(UnitSystem.extractUnitFrom(u))
+                    latexify(UnitSystem.extractUnit(u))
                 end,
                 raw"$")
             for (name, u) in zip(names(data), data[1, :])

@@ -12,21 +12,21 @@ end
 extractKey(it, ::Val{:this}) = it
 
 
-inlineResolved(expr::Any, T::Symbol) = inlineResolved(expr, Val{T}())
+inlineResolved(@nospecialize(expr::Any), T::Symbol) = inlineResolved(expr, Val{T}())
 inlineResolved(expr::Expr, T::Symbol) = inlineResolved(Val(expr.head), expr, Val{T}())
-inlineResolved(expr, T::Val) = expr
-inlineResolved(expr::Expr, T::Val) = inlineResolved(Val(expr.head), expr, T)
+inlineResolved(@nospecialize(expr), @nospecialize(T::Val)) = expr
+inlineResolved(expr::Expr, @nospecialize(T::Val)) = inlineResolved(Val(expr.head), expr, T)
 
 supportedInlineOptions = [
     :base, #= :inlineValue,  =#:inlineWithUnits, :display, :displayCalculated,
 ]
-inlineResolved(::Val, expr::Expr, T::@unionVal $supportedInlineOptions) = Expr(expr.head, [inlineResolved(it, T) for it in expr.args]...)
+inlineResolved(@nospecialize(::Val), expr::Expr, T::@unionVal $supportedInlineOptions) = Expr(expr.head, [inlineResolved(it, T) for it in expr.args]...)
 
 function ensureImplementInlineOptions(type::Type)::Tuple{Bool, Vector{Symbol}}
     missingOptions = []
     for option in supportedInlineOptions
         method = methods(extractKey, Tuple{type, Val{option}})[1]
-        method.file == stacktrace()[1].file && push!(missingOptions, option)
+        method.file == @__FILE__() && push!(missingOptions, option)
     end
     return length(missingOptions) == 0, missingOptions
 end

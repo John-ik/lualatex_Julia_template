@@ -2,18 +2,23 @@
 include("utils/init.jl")
 println("\n", @__FILE__, "{")
 
-eval_module()::Module=Main
+eval_module()::Module = Main
 
 
-Main.@timeEachUsing using LaTeXStrings, Unitful, UnitfulLatexify, Latexify, DataFrames, PrettyTables
-Main.@timeEachUsing using Unitful.DefaultSymbols
+
+using LaTeXStrings, Unitful, UnitfulLatexify, Latexify, DataFrames, PrettyTables
+using Unitful.DefaultSymbols
+
+#= Main.@timeEachUsing =#
+
+#= Main.@timeEachUsing =#
 println("}", @__FILE__, "\n\n")
 
 @save_exported export @Lr_str, @byRow, @init_constants, @init_formulas, @substitute,
-    calcWith, inlineConstAndVars,
+    inlineConstAndVars,
     dataToLaTeX, table2datax,
-    process_greek, substitute,
-    Constant, Formula, register!, reset_list!, constants2LaTeX, formulas2LaTeX
+    substitute,
+    Constant, Formula, reset!, constants2LaTeX, formulas2LaTeX
 # export  @Lr_str, @test, process_greek, substitute
 
 import Unitful
@@ -51,7 +56,7 @@ function toBaseUnit(quantity::Unitful.AbstractQuantity)::Unitful.AbstractQuantit
     if dimension(quantity) == NoDims
         quantity |> float
     else
-        UnitSystem.SI.convertToPreferred(quantity)
+        UnitSystem.SI.toPreferred(quantity)
     end
 end
 
@@ -72,20 +77,19 @@ end
 
 # include("DerivativeLib/init.jl")
 # @usingMacro using .DerivativeLib
-var"@namedTime" = Main.var"@namedTime"
-@namedTime include("cacl.jl")
-@namedTime include("latex.jl")
-@namedTime include("postlatex.jl")
-@namedTime include("formula.jl")
-@namedTime include("constant.jl")
-@namedTime include("calculation.jl")
-@namedTime include("datax.jl")
+include("reset_system.jl") #= @namedTime  =#
+include("cacl.jl") #= @namedTime  =#
+include("latex.jl") #= @namedTime  =#
+
+include("formula.jl") #= @namedTime  =#
+include("constant.jl") #= @namedTime  =#
+include("datax.jl") #= @namedTime  =#
 
 println()
 println()
 function toBaseUnit(expr::Evaluatable)
     try
-        UnitSystem.SI.convertToPreferred(Core.eval(Main, expr.inlineWithUnits))
+        UnitSystem.SI.toPreferred(Core.eval(Main, expr.inlineWithUnits))
     catch e
         b = IOBuffer()
         show(b, "text/plain", expr)

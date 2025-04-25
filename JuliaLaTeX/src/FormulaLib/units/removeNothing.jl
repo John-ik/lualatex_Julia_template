@@ -38,8 +38,8 @@ end
 
 removeNothing(t) = t
 removeNothing(t::Expr) = removeNothing(Val(t.head), t)
-removeNothing(::Val{:call}, t::Expr) = removeNothingCall(Val(t.args[1]), (t.args[2:end] .|> removeNothing)...)
-removeNothing(::Val, t::Expr) = Expr(t.head, (t.args .|> removeNothing)...)
+removeNothing(::Val{:call}, t::Expr) = removeNothingCall(Val(t.args[1]), map(removeNothing,t.args[2:end])...)
+removeNothing(::Val, t::Expr) = Expr(t.head, map(removeNothing,t.args)...)
 
 
 

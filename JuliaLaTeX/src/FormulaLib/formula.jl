@@ -19,19 +19,20 @@
             expr = expr.args[1]
         end
         resolved = resolveReferences(expr, m)
+        # inlineAll(resolved)
         return new(
-            inlineResolved(resolved, :base),
+            #=expr,=# inlineResolved(resolved, :base),
             # inlineResolved(resolved, :inlineValue),
-            inlineResolved(resolved, :inlineWithUnits),
-            inlineResolved(resolved, :display),
-            inlineResolved(resolved, :displayCalculated),
+            #=expr,=# inlineResolved(resolved, :inlineWithUnits),
+            #=expr,=# inlineResolved(resolved, :display),
+            #=expr,=# inlineResolved(resolved, :displayCalculated),
             expr,
             resolved,
-            UnitSystem.extractValueUnitFrom(try
+            UnitSystem.extractUnit(try
                 Core.eval(m, unit)
             catch e
                 error(e)
-            end)[2],# for 1/m
+            end),# for 1/m
         )
     end
     function Base.show(io::IO, ::MIME"text/plain", it::Evaluatable)
@@ -65,7 +66,7 @@ mutable struct Formula
             displayName::QuoteNode,
             expr::Expression) error(string(name," \ndisplay = ",displayName,"\n eval =",expr)) end =#
     function Formula(name::Symbol,
-        displayName::Union{Expression, QuoteNode},
+        @nospecialize(displayName::Union{Expression, QuoteNode}),
         expr::Expression)
         stack = stacktrace()[2]
         m = Main
@@ -75,15 +76,13 @@ mutable struct Formula
         resolveNameContext.referenceTypeMap[Symbol(raw"$:")] = nothing
         resolveNameContext.referenceTypeMap[Symbol(raw"")] = nothing
         resolveNameContext.referenceTypeMap[Symbol(raw":")] = DisplayRef
-        if typeof(displayName) == QuoteNode
-            displayName = inlineResolved(resolveReferences(displayName.value, resolveNameContext), :display)
-        elseif typeof(displayName) != Expr
-            displayName = inlineResolved(resolveReferences(displayName, resolveNameContext), :display)
-        elseif displayName.head == :quote
-            displayName = inlineResolved(resolveReferences(displayName.args[1], resolveNameContext), :display)
-        else
-            displayName = inlineResolved(resolveReferences(displayName, resolveNameContext), :display)
-        end
+
+        displayName = @switch displayName => {
+            typeof(_) == QuoteNode => displayName.value;
+            Meta.isexpr(_, :quote) => displayName.args[1]
+            ; _ => displayName;
+        }
+        displayName = inlineResolved(resolveReferences(displayName, resolveNameContext), :display)
         return new(name, displayName, Evaluatable(expr, m))
     end
 
@@ -106,25 +105,26 @@ extractKey((it,)::InlineRef{Formula}, ::Val{:inlineValue}) = extractKey(it, Val(
 
 extractKey((it,)::Union{DisplayInlineRef{Formula}}, ::Val{:displayCalculated}) = ValRef(:calcLater, #=  InlineRef{Formula},  =#
     Expr(:call, (v) -> begin
-            UnitSystem.extractValueUnitFrom(UnitSystem.SI.convertToPreferred(v))[1]
+            UnitSystem.extractValue(UnitSystem.SI.toPreferred(v))
         end, it.expr.inlineWithUnits),
 )
 
 extractKey((it,)::InlineRef{Formula}, v::Val{:displayCalculated}) = extractKey(it, v)
 extractKey(it::Formula, ::Val{:displayCalculated}) = begin
-    expr = it.expr
-    displayCalculated = expr.displayCalculated
-    expr.unit === nothing && return displayCalculated
-    convExpr = UnitSystem.SI.getConvertExpr(expr.unit)
+    # return it.expr.displayCalculated
+    expr::Evaluatable = it.expr
+    displayCalculated::Expression = expr.displayCalculated
+    (expr.unit === nothing) && return displayCalculated
+    convExpr = UnitSystem.SI.convertExpr(expr.unit)::Union{Nothing,Base.Callable}
     convExpr === nothing && displayCalculated
     return convExpr(displayCalculated)
 end
 extractKey(it::Formula, ::Val{:base}) = it.name
 extractKey(it::Formula, ::Val{:inlineValue}) = begin
-    # converter = UnitSystem.SI.getConvertExpr(it.expr.unit)
+    # converter = UnitSystem.SI.convertExpr(it.expr.unit)
     # converter === nothing ? it.expr.inlineValue : Expr(:call,,it.expr.inlineValue)
     Expr(:call, x -> begin
-            UnitSystem.extractValueUnitFrom(UnitSystem.SI.convertToPreferred(UnitSystem.applyUnitTo(x, it.expr.unit)))[1]
+            UnitSystem.extractValue(UnitSystem.SI.toPreferred(UnitSystem.applyUnitTo(x, it.expr.unit)))
         end, it.expr.inlineValue)
 end
 

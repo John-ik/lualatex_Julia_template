@@ -29,7 +29,7 @@ function handleFormulaMacro(::Val{:(=)}, expr::Expr)
         localValue = value.args[2]
     end
     # expr.args[2] = :(($localName, $localValue))
-    expr.args[2] = Expr(:call, :Formula, ((name, localName, localValue) .|> Base.remove_linenums! .|> QuoteNode)...)
+    expr.args[2] = Expr(:call, :Formula, map(QuoteNode ∘ Base.remove_linenums!,(name, localName, localValue))...)
     return expr
 
 end

@@ -3,7 +3,7 @@ function substitute(formula::Formula, args::Pair{Symbol, <:Any}...)
     c = copy(formula.expr)
 
     dict = Dict(args...)
-    dictUnitLess = Dict([arg[1] => UnitSystem.extractValueUnitFrom(arg[2])[1] for arg in args]...)
+    dictUnitLess = Dict([arg[1] => UnitSystem.extractValue(arg[2]) for arg in args]...)
     context = SubstitutionContext(false, false, dictUnitLess, dict)
     for option in supportedInlineOptions
         option == :display && continue
@@ -30,11 +30,11 @@ Base.getindex(ctx::SubstitutionContext, expr) = begin
     v = getindex(ctx.withUnits, expr)
     !isa(v, Number) && return v
     if ctx.isCalcLater || !ctx.isUnitLess
-        v = UnitSystem.SI.convertToPreferred(v)
+        v = UnitSystem.SI.toPreferred(v)
         return v
     end
-    expr = UnitSystem.SI.getConvertExpr(v)
-    v=UnitSystem.extractValueFrom(v)
+    expr = UnitSystem.SI.convertExpr(v)
+    v=UnitSystem.extractValue(v)
     expr===nothing && return v
     return expr(v)
 end
@@ -73,10 +73,10 @@ function substitute((it,)::ValRef{:calcLater}, ctx::SubstitutionContext)
         ctx.isCalcLater = true
         sub = substitute(it, ctx)
         value = Core.eval(Main, sub)
-        @show sub, value
+        # @show sub, value
         ctx.isUnitLess = prevU
         ctx.isCalcLater = false
-        # prevU && return UnitSystem.extractValueFrom(value)
+        # prevU && return UnitSystem.extractValue(value)
         return value
     catch e
         ctx.isUnitLess = prevU

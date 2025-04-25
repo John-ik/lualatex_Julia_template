@@ -10,7 +10,7 @@ end
 function addVariables(ex::Expression, vars::Pair{Symbol,<:Any}...)
     pairToExpr((k, v)) = Expr(:local, Expr(:(=), k, v))
 
-    block = Expr(:block, (vars .|> pairToExpr)..., ex)
+    block = Expr(:block, map(pairToExpr,vars)..., ex)
     return block
 end
 

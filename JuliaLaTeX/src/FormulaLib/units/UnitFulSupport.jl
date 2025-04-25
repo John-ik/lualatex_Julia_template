@@ -9,20 +9,23 @@ if Core.eval(@__MODULE__, Expr(:isdefined, :Unitful))
     applyUnitTo(value::Unitful.Quantity, it::Unitful.Units) = Unitful.uconvert(it, value)
     # applyUnitTo(value::Number, it::Unitful.Quantity) = applyUnitTo(value, extractValueUnitFrom(it)[2])
 
-    extractValueUnitFrom(it::Unitful.Quantity) = (it.val, Unitful.unit(it))
-    extractValueUnitFrom(it::Unitful.Units) = (nothing, it)
+    extractUnit(it::Unitful.Quantity) =  Unitful.unit(it)
+    extractValue(it::Unitful.Quantity) = it.val
 
-    SI.convertToPreferred(value::Unitful.Quantity) = Unitful.uconvert(SI.preferredUnit(value), value)
+    extractUnit(it::Unitful.Units) = it
+    extractValue(::Unitful.Units) = nothing
+
+    SI.toPreferred(value::Unitful.Quantity) = Unitful.uconvert(SI.preferredUnit(value), value)
 
     SI.preferredUnit(it::Number) = Unitful.NoUnits
-    SI.preferredUnit(it::Unitful.Quantity) = SI.preferredUnit(extractValueUnitFrom(it)[2])
+    SI.preferredUnit(it::Unitful.Quantity) = SI.preferredUnit(extractUnit(it))
     SI.preferredUnit(it::Unitful.Units) = SI.preferredUnit(Unitful.dimension(it))
     SI.preferredUnit(it::Unitful.Dimensions) = Unitful.upreferred(it)
     SI.preferredUnit(it::Unitful.Dimension) = Unitful.upreferred(it)
 
-    SI.getConvertExpr(value::Unitful.Quantity) = SI.getConvertExpr(extractValueUnitFrom(value)[2])
-    # SI.getConvertExpr(value::Unitful.Units) = SI
-    function SI.getConvertExpr(fromobj::Unitful.Units, targetobj::Unitful.Units)
+    SI.convertExpr(value::Unitful.Quantity) = SI.convertExpr(extractUnit(value))
+    # SI.convertExpr(value::Unitful.Units) = SI
+    function SI.convertExpr(fromobj::Unitful.Units, targetobj::Unitful.Units)
         from = typeof(fromobj)
         target = typeof(targetobj)
 
@@ -53,7 +56,8 @@ if Core.eval(@__MODULE__, Expr(:isdefined, :Unitful))
         t1 == 0 && return x -> Expr(:call, :*, Expr(:call, :-, x, t0), factor)
         return x -> Expr(:call, :+, Expr(:call, :*, Expr(:call, :-, x, t0), factor), t1)
     end
-    SI.getConvertExpr(from::typeof(Unitful.DefaultSymbols.°),to::typeof(Unitful.upreferred(Unitful.DefaultSymbols.°))) = x -> :($x * (π / 180))
+    SI.convertExpr(::typeof(Unitful.DefaultSymbols.°),::typeof(Unitful.upreferred(Unitful.DefaultSymbols.°))) = x -> :($x * (π / 180))
+    SI.convertExpr(::typeof(Unitful.upreferred(Unitful.DefaultSymbols.°)),::typeof(Unitful.DefaultSymbols.°)) = x -> :($x * (180 / π))
 
 end
 
@@ -66,9 +70,9 @@ function splitExpressionWithUnit(T::Val{:macrocall}, expr::Expr)::Tuple
 end
 function splitExpressionWithUnit(T::Val{:call}, expr::Expr)::Tuple
     expr.args[1] != :* && return defaultSplitExprWithUnit(T, expr)
-    newArgs = expr.args .|> splitExpressionWithUnit
+    newArgs = map(splitExpressionWithUnit,expr.args)
 
-    filtered = filter(!isnothing, newArgs .|> first)
+    filtered = filter(!isnothing, map(first,newArgs))
     unit = nothing
     for arg in newArgs
         arg[2] !== nothing && (unit = arg[2])

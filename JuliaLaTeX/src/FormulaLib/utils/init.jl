@@ -23,6 +23,8 @@ macro __CUR_LINE__()
     return esc(Expr(:quote, __source__))
 end
 
+include("importExportedMacro.jl")
+include("switch.jl")
 include("unionVal.jl")
 include("valTuple.jl")
 include("generateConstructor.jl")

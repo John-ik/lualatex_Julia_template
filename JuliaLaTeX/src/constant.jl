@@ -25,20 +25,13 @@ Base.show(io::IO, ::MIME"text/latex", c::Constant) = begin
     print(io, "$desc \$ $s = $v $u\$")
 end
 
-function constantPairs()
-    Dict(constantList .|> (x -> LaTeXString(x.displayName) => x.quantity))
-end
 reset_list!(::Type{Constant}) = empty!(constantList)
-register!(constants::Constant...) = register!.(constants)
-
-
-constantList_reset!() = empty!(constantList)
 
 
 function constants2LaTeX()
-    io = IOContext(IOBuffer())
+    io = IOBuffer()
     constants2LaTeX(io)
-    return String(take!(io.io))
+    return String(take!(io))
 end
 function constants2LaTeX(filename::String, permissions::String="w")
     mkpath(dirname(filename))
@@ -53,7 +46,7 @@ function constants2LaTeX(io::IO)
         if i == 1
             first_io = IOBuffer()
             show(first_io, "text/latex", constantList[i])
-            print(io, String(take!(first_io)) |> uppercasefirst)
+            print(io, uppercasefirst(String(take!(first_io))))
         else
             show(io, "text/latex", constantList[i])
         end

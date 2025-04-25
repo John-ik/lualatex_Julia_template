@@ -16,7 +16,7 @@ macro namedTime(stmt::Expr)
     esc(stmt)
 end
 @time "JuliaLaTex" include("JuliaLaTeX/src/JuliaLaTeX.jl") #hide
-JuliaLaTeX.@import_exported using .JuliaLaTeX   #hide
+JuliaLaTeX.@safe_using using .JuliaLaTeX   #hide
 
 #jl using JuliaLaTeX
 

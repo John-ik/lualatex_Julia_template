@@ -3,16 +3,29 @@ export @switch
 
 try_replace(expression::Symbol, replaced::Base.RefValue{Bool}, compare_name::Symbol) =
     expression == :_ ? (replaced.x = true; compare_name) : expression
-try_replace(expression::Number, replaced::Base.RefValue{Bool}, compare_name::Symbol) =
-    expression
+for idt in [Number, String, QuoteNode]
+    Core.eval(@__MODULE__, quote
+        try_replace(expression::$idt, replaced::Base.RefValue{Bool}, compare_name::Symbol) =
+            expression
+    end)
+end
 try_replace(expression::Expr, replaced::Base.RefValue{Bool}, compare_name::Symbol) =
-    Expr(expression.head, [try_replace(x, replaced, compare_name) for x in expression.args]...)
+    Expr(expression.head, map(x -> try_replace(x, replaced, compare_name), expression.args)...)
 
 cached_expr_symbol::Symbol = :___value___
 
 
-"
-Example 1:
+
+"""
+    @switch EXPR => {
+        EXPR => EXPR;
+        EXPR => EXPR;
+    }
+Adds switch expression
+
+# Examples
+
+### Example 1
 ```
 @switch typeof(reference) => {
     _ <: Vector => println(Vector);
@@ -20,7 +33,7 @@ Example 1:
     _ => println(Missing);
 }
 ```
-Transformed to
+#### Transformed to
 ```
 local ___value___ = typeof(reference)
 if ___value___ <: Vector
@@ -32,27 +45,27 @@ else
 end
 ```
 
-Example 2:
+### Example 2
 ```
 @switch object => {
     typeof(_) <: Vector => println(Vector);
-    3 => println(\"Number: \",'3');
-    _ => println(\"Other\");
+    3 => println("Number: ",'3');
+    _ => println("Other");
 }
 ```
-Transformed to
+#### Transformed to
 ```
 local ___value___ = object
 if typeof(___value___) <: Vector
     println(Vector)
 elseif ___value___ == 3
-    println(\"Number: \", '3')
+    println("Number: ", '3')
 else
-    println(\"Other\")
+    println("Other")
 end
 ```
 
-"
+"""
 macro switch(expr)
     @assert expr.head == :call
     @assert expr.args[1] == :(=>)
@@ -61,9 +74,10 @@ macro switch(expr)
 
     body::Expr = expr.args[3]::Expr
 
-    prevSum::Expr = quote
-        local $cached_expr_symbol = $value
-    end
+    prevSum::Expr = Expr(:block,
+        __source__,
+        Base.remove_linenums!(:(local $cached_expr_symbol = $value)),
+    )
     startBody::Expr = prevSum
     ifSym::Symbol = :if
     # println(string(expr))
@@ -97,10 +111,10 @@ macro switch(expr)
 end
 
 macro using_self(expr)
-    esc(Expr(:block,
-        Expr(:(=), Symbol("@switch"), var"@switch"),    
-        :()
-        ))
+    return esc(Expr(:block,
+        Expr(:(=), Symbol("@switch"), var"@switch"),
+        :(),
+    ))
 end
 
 end

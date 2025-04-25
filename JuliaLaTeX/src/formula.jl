@@ -1,5 +1,6 @@
 
 # module FormulaLib
+
 include("FormulaLib/init.jl")
 # end
 # Formula = FormulaLib.Formula
@@ -10,7 +11,7 @@ function expand_formulas_macro_with_replacement(__source__::LineNumberNode, __mo
     expr = var"@formulas"(__source__, __module__, expr)
     replaceMaker(it) = it
     replaceMaker(it::Expr) = replaceMaker(Val(it.head), it)
-    replaceMaker(::Val, it::Expr) = Expr(it.head, (it.args .|> replaceMaker)...)
+    replaceMaker(::Val, it::Expr) = Expr(it.head, map(replaceMaker,it.args)...)
     replaceMaker(::Val{:call}, it::Expr) = begin
         it.args[1] == :Formula ? Expr(:call, newConstructor, it) : expr
     end
@@ -28,7 +29,7 @@ macro init_formulas(expr)
 end
 
 transformChar(c::Char) = c == '_' ? c : get(Latexify.unicodedict, c,c)
-filterName(s) = join([s...] .|> transformChar)
+filterName(s) = join(map(transformChar,collect(s)))
 
 latexifyDisplayName(expr::Symbol) = filterName(string(expr))
 latexifyDisplayName(expr::Number) = latexify(expr)
@@ -36,11 +37,11 @@ latexifyDisplayName(expr::String) = expr
 latexifyDisplayName(expr::Expr) = @switch expr.head => {
     :curly => begin
         it = string(latexifyDisplayName(expr.args[1]), '{', latexifyDisplayName(expr.args[2]), '}')
-        @show it
+        # @show it
         it
     end,
     :call => begin
-        it = string(latexify(Expr(:call, expr.args[1], (expr.args[2:end] .|> latexifyDisplayName)...); env = :raw))
+        it = string(latexify(Expr(:call, expr.args[1], map(latexifyDisplayName,expr.args[2:end])...); env = :raw))
         it
     end,
     Symbol("'") => begin
@@ -79,14 +80,6 @@ end
 formulaList = Vector{Formula}([])
 
 reset_list!(::Type{Formula}) = empty!(formulaList)
-register!(formulas::Formula...) = register!.(formulas)
-
-function register!(formula::Formula)
-    push!(formulaList, formula)
-end
-
-formulaList_reset!() = empty!(formulaList)
-
 
 
 function formulas2LaTeX()
