@@ -7,15 +7,8 @@ include("FormulaLib/init.jl")
 # @usingMacro using .FormulaLib
 
 
-function expand_formulas_macro_with_replacement(__source__::LineNumberNode, __module__::Module, expr, newConstructor)
-    expr = var"@formulas"(__source__, __module__, expr)
-    replaceMaker(it) = it
-    replaceMaker(it::Expr) = replaceMaker(Val(it.head), it)
-    replaceMaker(::Val, it::Expr) = Expr(it.head, map(replaceMaker,it.args)...)
-    replaceMaker(::Val{:call}, it::Expr) = begin
-        it.args[1] == :Formula ? Expr(:call, newConstructor, it) : expr
-    end
-    return replaceMaker(expr)
+function expand_formulas_macro_with_replacement(__source__::LineNumberNode, __module__::Module, @nospecialize(expr), @nospecialize(newConstructor))
+    return esc(handleFormulaMacro(HandleFormulaMacroContext(__module__, __source__, x -> Expr(:call, newConstructor, x)), expr))
 end
 
 function FormulaMaker(f::Formula)
@@ -28,8 +21,8 @@ macro init_formulas(expr)
     expand_formulas_macro_with_replacement(__source__, __module__, expr, FormulaMaker)
 end
 
-transformChar(c::Char) = c == '_' ? c : get(Latexify.unicodedict, c,c)
-filterName(s) = join(map(transformChar,collect(s)))
+transformChar(c::Char) = c == '_' ? c : get(Latexify.unicodedict, c, c)
+filterName(s) = join(map(transformChar, collect(s)))
 
 latexifyDisplayName(expr::Symbol) = filterName(string(expr))
 latexifyDisplayName(expr::Number) = latexify(expr)
@@ -41,7 +34,7 @@ latexifyDisplayName(expr::Expr) = @switch expr.head => {
         it
     end,
     :call => begin
-        it = string(latexify(Expr(:call, expr.args[1], map(latexifyDisplayName,expr.args[2:end])...); env = :raw))
+        it = string(latexify(Expr(:call, expr.args[1], map(latexifyDisplayName, expr.args[2:end])...); env = :raw))
         it
     end,
     Symbol("'") => begin

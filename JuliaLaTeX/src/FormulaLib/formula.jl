@@ -23,9 +23,9 @@
         return new(
             ##=expr,=# inlineResolved(resolved, :base),
             # inlineResolved(resolved, :inlineValue),
-            #=expr,=# inlineResolved(resolved, :inlineWithUnits),
-            #=expr,=# inlineResolved(resolved, :display),
-            #=expr,=# inlineResolved(resolved, :displayCalculated),
+            inlineResolved(resolved, :inlineWithUnits),            #=expr,=#
+            inlineResolved(resolved, :display),            #=expr,=#
+            inlineResolved(resolved, :displayCalculated),            #=expr,=#
             expr,
             resolved,
             UnitSystem.extractUnit(try
@@ -67,11 +67,13 @@ mutable struct Formula
             expr::Expression) error(string(name," \ndisplay = ",displayName,"\n eval =",expr)) end =#
     function Formula(name::Symbol,
         @nospecialize(displayName::Union{Expression, QuoteNode}),
-        expr::Expression)
-        stack = stacktrace()[2]
-        m = Main
-        typeof(stack.linfo) == Core.MethodInstance && (m = stack.linfo.def.module)
-        resolveNameContext = ReferenceResolutionContext(m = m)
+        expr::Expression; caller_module::Union{Module, Nothing} = nothing)
+        if caller_module === nothing
+            stack = stacktrace()[2]
+            caller_module = Main
+            typeof(stack.linfo) == Core.MethodInstance && (caller_module = stack.linfo.def.module)
+        end
+        resolveNameContext = ReferenceResolutionContext(m = caller_module)
         resolveNameContext.referenceTypeMap[:($)] = nothing
         resolveNameContext.referenceTypeMap[Symbol(raw"$:")] = nothing
         resolveNameContext.referenceTypeMap[Symbol(raw"")] = nothing
@@ -83,7 +85,7 @@ mutable struct Formula
             ; _ => displayName;
         }
         displayName = inlineResolved(resolveReferences(displayName, resolveNameContext), :display)
-        return new(name, displayName, Evaluatable(expr, m))
+        return new(name, displayName, Evaluatable(expr, caller_module))
     end
 
     function Base.show(io::IO, T::MIME"text/plain", it::Formula)
@@ -115,7 +117,7 @@ extractKey(it::Formula, ::Val{:displayCalculated}) = begin
     expr::Evaluatable = it.expr
     displayCalculated::Expression = expr.displayCalculated
     (expr.unit === nothing) && return displayCalculated
-    convExpr = UnitSystem.SI.convertExpr(expr.unit)::Union{Nothing,Base.Callable}
+    convExpr = UnitSystem.SI.convertExpr(expr.unit)::Union{Nothing, Base.Callable}
     convExpr === nothing && displayCalculated
     return convExpr(displayCalculated)
 end

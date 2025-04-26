@@ -5,7 +5,7 @@ end
 
 processReference(name, v::Constant) = processReference(name, v.formula)
 
-ConstantMaker(args...) = FormulaMaker(Formula(args...))
+# ConstantMaker(args...) = FormulaMaker(Formula(args...))
 ConstantMaker(f::Formula) = begin
     c = Constant(f)
     push!(constantList, c)
