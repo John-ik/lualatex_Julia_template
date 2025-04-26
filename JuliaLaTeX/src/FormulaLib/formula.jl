@@ -1,6 +1,6 @@
 
 @all_arg_constructor mutable struct Evaluatable
-    base::Expression
+    # base::Expression
     # inlineValue::Expression
     inlineWithUnits::Expression
     display::Expression
@@ -21,7 +21,7 @@
         resolved = resolveReferences(expr, m)
         # inlineAll(resolved)
         return new(
-            #=expr,=# inlineResolved(resolved, :base),
+            ##=expr,=# inlineResolved(resolved, :base),
             # inlineResolved(resolved, :inlineValue),
             #=expr,=# inlineResolved(resolved, :inlineWithUnits),
             #=expr,=# inlineResolved(resolved, :display),
