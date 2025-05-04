@@ -10,6 +10,7 @@ if Core.eval(@__MODULE__, Expr(:isdefined, :Unitful))
     # applyUnitTo(value::Number, it::Unitful.Quantity) = applyUnitTo(value, extractValueUnitFrom(it)[2])
 
     extractUnit(it::Unitful.Quantity) =  Unitful.unit(it)
+    extractUnit(::Type{T}) where T<:Union{Unitful.Quantity, Unitful.Unitlike} =  Unitful.unit(T)
     extractValue(it::Unitful.Quantity) = it.val
 
     extractUnit(it::Unitful.Units) = it

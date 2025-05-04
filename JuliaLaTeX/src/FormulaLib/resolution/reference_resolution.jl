@@ -14,6 +14,7 @@ const default_REFERENCE_MAP::Dict{Symbol, Union{Base.Callable, Nothing}} = Dict(
     ignoreReferences::Dict{Symbol, IgnoreStatus} = copy(default_STATUS_IGNORE)
     referenceTypeMap::Dict{Symbol, Union{Base.Callable, Nothing}} = copy(default_REFERENCE_MAP)
 end
+Base.broadcastable(x::ReferenceResolutionContext)=Ref(x)
 
 resolveReferences(expr, m::Module) = resolveReferences(expr, ReferenceResolutionContext(m = m))
 resolveReferences(expr, context::ReferenceResolutionContext) = expr

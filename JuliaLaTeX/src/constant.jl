@@ -2,6 +2,7 @@
 struct Constant
     formula::Formula
 end
+Base.broadcastable(x::Constant) = Ref(x)
 
 processReference(name, v::Constant) = processReference(name, v.formula)
 
