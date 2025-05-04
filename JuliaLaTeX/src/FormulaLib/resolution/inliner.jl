@@ -18,7 +18,7 @@ inlineResolved(@nospecialize(expr), @nospecialize(T::Val)) = expr
 inlineResolved(expr::Expr, @nospecialize(T::Val)) = inlineResolved(Val(expr.head), expr, T)
 
 supportedInlineOptions = [
-    :base, #= :inlineValue,  =#:inlineWithUnits, :display, :displayCalculated,
+     #= :inlineValue,  =#:inlineWithUnits, :display, :displayCalculated,
 ]
 inlineResolved(@nospecialize(::Val), expr::Expr, T::@unionVal $supportedInlineOptions) = Expr(expr.head, [inlineResolved(it, T) for it in expr.args]...)
 
