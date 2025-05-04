@@ -31,7 +31,7 @@ macro safe_using(expr::Expr)
         # @show arg
         @assert Meta.isexpr(arg, :.)
         #if !Meta.isexpr(arg, :.)
-        if arg.args[1]!=:.
+        if arg.args[1] != :.
             if wasUsing
                 push!(block.args[end].args, arg)
             else
@@ -55,6 +55,9 @@ end
 macro save_exported(expr::Expr)
     @assert Meta.isexpr(expr, :export) "Allowed only 'export' expression"
     return esc(Expr(:block, expr,
-        Expr(:(=), :__exported__, expr.args),
+        Expr(:if, Expr(:isdefined, :__exported__),
+            Expr(:(=), :__exported__, Expr(:call, :vcat, :__exported__, expr.args)),
+            Expr(:(=), :__exported__, expr.args),
+        ),
     ))
 end
