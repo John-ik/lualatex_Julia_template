@@ -70,7 +70,10 @@ end
 function Base.show(io::IO, ::MIME"text/latex", formula::Formula)
     # iscompact = get(io, :compact, false)::Bool # check if compact provided
     desc = description(Main, formula)
-    print(io, "$(desc): $(latexify(formula))")
+    string_io = IOContext(IOBuffer())
+    show(string_io, desc)
+    desc_s = strip(String(take!(string_io.io)))
+    print(io, "$(desc_s): $(latexify(formula))")
 end
 
 formulaList = Vector{Formula}([])
