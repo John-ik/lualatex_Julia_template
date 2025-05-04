@@ -16,15 +16,21 @@ println("}", @__FILE__, "\n\n")
 
 @save_exported export @Lr_str, @byRow, @init_constants, @init_formulas, @substitute,
     inlineConstAndVars,
-    dataToLaTeX, table2datax,
+    data_to_LaTeX_table, table2datax,
     substitute,
-    Constant, Formula, reset!, constants2LaTeX, formulas2LaTeX
+    Constant, Formula, reset!, constants2LaTeX, formulas2LaTeX,
+    eval_with_units
 # export  @Lr_str, @test, process_greek, substitute
 
 import Unitful
 
-if !Main.wasJuliaLatex
-    Core.eval(Main, :(UnitfulLatexify_PrevF = 0))
+
+if !isdefined(Main, :____was__JuliaLatex)
+    Core.eval(Main, quote
+        ____was__JuliaLatex = true
+        UnitfulLatexify_PrevF = 0
+    end
+    )
     Main.UnitfulLatexify_PrevF = last(methods(Latexify.Latexify.apply_recipe, Tuple{Unitful.AbstractQuantity}))
 end
 @latexrecipe function f(
@@ -79,17 +85,29 @@ end
 # @usingMacro using .DerivativeLib
 include("reset_system.jl") #= @namedTime  =#
 include("cacl.jl") #= @namedTime  =#
+include("calculation/init.jl") #= @namedTime  =#
 include("latex.jl") #= @namedTime  =#
 
 include("formula.jl") #= @namedTime  =#
 include("constant.jl") #= @namedTime  =#
-include("datax.jl") #= @namedTime  =#
+include("convert/init.jl") #= @namedTime  =#
 
 println()
 println()
+function eval_with_units(expr::Number)
+    return expr
+end
+function eval_with_units(expr::Evaluatable)
+    try
+        UnitSystem.applyUnitTo(Core.eval(eval_module(), expr.inlineWithUnits), expr.unit)
+    catch e
+        error("expr cannot be evaluated '$expr': ",e)
+    end
+end
+
 function toBaseUnit(expr::Evaluatable)
     try
-        UnitSystem.SI.toPreferred(Core.eval(Main, expr.inlineWithUnits))
+        UnitSystem.SI.toPreferred(Core.eval(eval_module(), expr.inlineWithUnits))
     catch e
         b = IOBuffer()
         show(b, "text/plain", expr)

@@ -123,7 +123,7 @@ data = DataFrame(
 transform!(data,
     @byRow ((α_1, α_2) -> (α_1 + α_2) / 2) => :α
 )
-dataToLaTeX(labaPath"table_a.tex", data, "α" => Lr"\alpha_{\text{ср}}")
+data_to_LaTeX_table(labaPath"table_a.tex", data, "α" => Lr"\alpha_{\text{ср}}")
 
 transform!(data,
     @byRow ((I, α) -> @substitute(H, :I, :α => α)) => :H
@@ -137,7 +137,7 @@ namePair = (it) ->
     string(it.name) => LaTeXString(JuliaLaTeX.latexifyDisplayName(it.displayName))
 
 
-dataToLaTeX(labaPath"table_a2.tex", data, "α" => Lr"\alpha_{\text{ср}}",
+data_to_LaTeX_table(labaPath"table_a2.tex", data, "α" => Lr"\alpha_{\text{ср}}",
     namePair(H),
     namePair(thetaH),
 )
@@ -169,7 +169,7 @@ transform!(data2,
 )
 
 
-dataToLaTeX(labaPath"table_b.tex", data2, "β" => Lr"\beta_{\text{ср}}",
+data_to_LaTeX_table(labaPath"table_b.tex", data2, "β" => Lr"\beta_{\text{ср}}",
     namePair(e0),
     namePair(thetaE),
 )
@@ -210,7 +210,7 @@ open(labaPath"datax.tex", "a") do file
     reset_default()
 end
 
-# dataToLaTeX("gitignore/test/data_table.tex", data)
+# data_to_LaTeX_table("gitignore/test/data_table.tex", data)
 
 
 

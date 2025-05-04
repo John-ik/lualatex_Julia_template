@@ -44,7 +44,7 @@ function handleFormulaMacro(ctx::HandleFormulaMacroContext, ::Val{:(=)}, expr::E
     # expr.args[2] = :(($localName, $localValue))
     expr.args[2] = wrap_formula_make(ctx.wrapped, Expr(:call, :Formula,
         map(QuoteNode ∘ Base.remove_linenums!, (name, localName, localValue))...,
-        Expr(:kw, :caller_module, ctx.__module__))
+        ctx.__module__)
     )
     return expr
 

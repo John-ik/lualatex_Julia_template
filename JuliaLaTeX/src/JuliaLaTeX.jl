@@ -1,6 +1,5 @@
 
-Core.eval(Main, :(wasJuliaLatex = false))
-Main.wasJuliaLatex = @isdefined JuliaLaTeX
+
 module JuliaLaTeX
 
 macro namedTime(stmt::Expr)
