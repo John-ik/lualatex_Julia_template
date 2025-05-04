@@ -19,6 +19,7 @@ mutable struct SubstitutionContext
     unitless::Dict{Symbol, <:Any}
     withUnits::Dict{Symbol, <:Any}
 end
+Base.broadcastable(x::SubstitutionContext)=Ref(x)
 
 current_dict(ctx::SubstitutionContext) = ctx.isUnitLess ? ctx.unitless : ctx.withUnits
 
@@ -51,7 +52,7 @@ substitute(expr::Expr, dict::SubstitutionContext) = haskey(dict, expr) ? dict[ex
 function substitute(::Val, expr::Expr, dict::SubstitutionContext)
     newArgs = []
     for arg in expr.args
-        push!(newArgs, substitute(arg, dict))
+        push!(newArgs, subst1itute(arg, dict))
     end
     return Expr(expr.head, newArgs...)
 end
@@ -81,7 +82,7 @@ function substitute((it,)::ValRef{:calcLater}, ctx::SubstitutionContext)
     catch e
         ctx.isUnitLess = prevU
         ctx.isCalcLater = false
-        error("Error while 'calcLatex' '$it' \n", ctx, "\n", e)
+        error("Error while 'calcLater' '$it' \n", ctx, "\n", e)
     end
 end
 
