@@ -1,5 +1,5 @@
 # VS Code
- 
+
 
 # LuaLaTeX
 
