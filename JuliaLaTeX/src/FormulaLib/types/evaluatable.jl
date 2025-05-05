@@ -1,4 +1,4 @@
-@all_arg_constructor mutable struct Evaluatable
+@all_arg_constructor mutable struct Evaluatable{T<:Union{Nothing,RoundingType}}
     # base::Expression
     # inlineValue::Expression
     inlineWithUnits::Expression
@@ -6,6 +6,7 @@
     displayCalculated::Expression
     raw::Expression
     resolved::Expression
+    rounding::T
     unit::Any
 
     function Evaluatable(expr::Expression, m::Union{Module, Nothing} = nothing)
@@ -19,7 +20,7 @@
         end
         resolved = resolveReferences(expr, m)
         # inlineAll(resolved)
-        return new(
+        return new{Nothing}(
             ##=expr,=# inlineResolved(resolved, :base),
             # inlineResolved(resolved, :inlineValue),
             inlineResolved(resolved, :inlineWithUnits),            #=expr,=#
@@ -27,6 +28,7 @@
             inlineResolved(resolved, :displayCalculated),            #=expr,=#
             expr,
             resolved,
+            nothing,
             UnitSystem.extractUnit(try
                 Core.eval(m, unit)
             catch e

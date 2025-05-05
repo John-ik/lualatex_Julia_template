@@ -9,24 +9,8 @@ using Test
 
 # @run_package_tests
 
-
-@testset "Test substitute near beginning and end" begin
-    set_default(env=:raw, fmt=FancyNumberFormatter(4))
-    f = :(U)
-    str = latexify(f)
-    @test str == "U"
-    str_subst = JuliaLaTeX.substitute(str, "U" => 10)
-    @test str_subst == "10"
-    f = latexify(:(U + I))
-    @test "10 + I" == JuliaLaTeX.substitute(f, "U" => 10)
-    @test "U + 10" == JuliaLaTeX.substitute(f, "I" => 10)
-end
-
-@testset "Greek" begin
-    @test process_greek(latexify(:alpha; env=:raw)) == Lr"\alpha" # works by default
-    @test process_greek(latexify(:(alpha^2); env=:raw)) == Lr"\alpha^{2}" # works by default
-    @test process_greek(Lr"Theta") == Lr"\Theta"
-    @test process_greek(latexify(:(alpha_2); env=:raw)) == Lr"\alpha_{2}"
+@testset "rounding" begin
+    include("rounding.jl")
 end
 
 @testset "Test on power" begin

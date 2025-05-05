@@ -83,9 +83,9 @@ macro switch(expr)
     # println(string(expr))
     boolRef::Base.RefValue = Ref(false)
     for arg in body.args
-        @assert typeof(arg) == Expr
+        @assert typeof(arg) == Expr LazyString("arg = ",arg)
         arg.head == :parameters && continue
-        @assert arg.args[1] == :(=>) string(arg)
+        @assert arg.args[1] == :(=>) string("expected '=>', but found '",arg.args[1],"' in expr '",arg,"'")
         match_expression = arg.args[2]
 
         ifStmt = if match_expression == :_

@@ -2,6 +2,9 @@
 # module FormulaLib
 
 include("FormulaLib/init.jl")
+
+
+@save_exported export theta_rounding
 # end
 # Formula = FormulaLib.Formula
 # @usingMacro using .FormulaLib
