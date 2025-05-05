@@ -1,4 +1,4 @@
 _output/
 gitignore/**
 main*.tex
-test*.jl
+/test*.jl

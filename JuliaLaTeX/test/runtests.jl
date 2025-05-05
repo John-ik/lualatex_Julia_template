@@ -10,7 +10,7 @@ using Test
 # @run_package_tests
 
 @testset "rounding" begin
-    include("rounding.jl")
+    include("rounding/tests.jl")
 end
 
 @testset "Test on power" begin
