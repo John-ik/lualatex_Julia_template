@@ -71,7 +71,7 @@ function Base.show(io::IO, ::MIME"text/latex", formula::Formula)
     # iscompact = get(io, :compact, false)::Bool # check if compact provided
     desc = description(Main, formula)
     string_io = IOContext(IOBuffer())
-    show(string_io, desc)
+    show(string_io, MIME"text/latex"(), desc)
     desc_s = strip(String(take!(string_io.io)))
     print(io, "$(desc_s): $(latexify(formula))")
 end
