@@ -49,7 +49,7 @@ extractKey((it,)::InlineRef{Formula}, ::Val{:inlineValue}) = extractKey(it, Val(
 
 extractKey((it,)::Union{DisplayInlineRef{Formula}}, ::Val{:displayCalculated}) = ValRef(:calcLater, #=  InlineRef{Formula},  =#
     Expr(:call, (v) -> begin
-            UnitSystem.extractValue(UnitSystem.SI.toPreferred(v))
+            UnitSystem.extract_value(UnitSystem.SI.toPreferred(v))
         end, it.expr.inlineWithUnits),
 )
 
@@ -68,7 +68,7 @@ extractKey(it::Formula, ::Val{:inlineValue}) = begin
     # converter = UnitSystem.SI.convertExpr(it.expr.unit)
     # converter === nothing ? it.expr.inlineValue : Expr(:call,,it.expr.inlineValue)
     Expr(:call, x -> begin
-            UnitSystem.extractValue(UnitSystem.SI.toPreferred(UnitSystem.applyUnitTo(x, it.expr.unit)))
+            UnitSystem.extract_value(UnitSystem.SI.toPreferred(UnitSystem.applyUnitTo(x, it.expr.unit)))
         end, it.expr.inlineValue)
 end
 

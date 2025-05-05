@@ -5,7 +5,7 @@ function plus_minus(a::Number, b::RoundResult; e10::Int=b.e10, unit::Unitful.Uni
     plus_minus(a, float(a); e10, unit)
 end
 function plus_minus(value::Number, round::RoundResult; e10::Int=round.e10)
-    value::Number = UnitSystem.extractValue(UnitSystem.applyUnitTo(value, round.unit))
+    value::Number = UnitSystem.extract_value(UnitSystem.applyUnitTo(value, round.unit))
     tail_s=tail_size(round)
     e10_1 = round.e10 - tail_s + 1
     int_part_100, off_part = extract_int_part(value, e10_1 - 2)

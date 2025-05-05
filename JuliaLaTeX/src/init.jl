@@ -93,6 +93,13 @@ include("constant.jl") #= @namedTime  =#
 include("convert/init.jl") #= @namedTime  =#
 include("rounding/init.jl") #= @namedTime  =#
 
+#region rounding
+
+UnitSystem.extract_value(pm::PlusMinusResult)=PlusMinusResult(pm.int_value,pm.int_theta,pm.tail_size,pm.e10,nothing)
+UnitSystem.extract_unit(pm::PlusMinusResult)=pm.unit
+
+#endregion
+
 println()
 println()
 function eval_with_units(expr::Number)

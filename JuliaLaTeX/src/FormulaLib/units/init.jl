@@ -18,9 +18,9 @@ include("abstract_split.jl")
 applyUnitTo(value, ::Nothing) = value
 # extractValueUnitFrom(value::Complex) = (value.im, im)
 
-extractValueUnitFrom(it) = (extractValue(it),extractUnit(it))
-extractUnit(::Union{Nothing,Main.STD_NUMBERS}) = nothing
-extractValue(value::Union{Nothing,Main.STD_NUMBERS}) = value
+extractValueUnitFrom(it) = (extract_value(it),extract_unit(it))
+extract_unit(::Union{Nothing,Main.STD_NUMBERS}) = nothing
+extract_value(value::Union{Nothing,Main.STD_NUMBERS}) = value
 
 include("si.jl")
 

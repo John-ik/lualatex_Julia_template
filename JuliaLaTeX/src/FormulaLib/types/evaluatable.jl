@@ -29,7 +29,7 @@
             expr,
             resolved,
             nothing,
-            UnitSystem.extractUnit(try
+            UnitSystem.extract_unit(try
                 Core.eval(m, unit)
             catch e
                 error(e)

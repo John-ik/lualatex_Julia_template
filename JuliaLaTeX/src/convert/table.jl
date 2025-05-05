@@ -21,11 +21,11 @@ function data_to_LaTeX_table(io::IO, data::DataFrame, @nospecialize(nameAliases:
     local ret = pretty_table(io,
         [LatexCell(latexify(
             if typeof(v) == Evaluatable
-                UnitSystem.extractValue(
+                UnitSystem.extract_value(
                     UnitSystem.applyUnitTo(Core.eval(eval_module(), v.inlineWithUnits), v.unit)
                 )
             else
-                UnitSystem.extractValue(v)
+                UnitSystem.extract_value(v)
             end
         )) for v in Tables.matrix(data)]
         ; backend=Val(:latex), alignment=:c, vlines=:all,
@@ -37,7 +37,7 @@ function data_to_LaTeX_table(io::IO, data::DataFrame, @nospecialize(nameAliases:
                     # UnitSystem.applyUnitTo(u.inlineWithUnits |> eval,u.unit)
                     latexify(u.unit)
                 else
-                    latexify(UnitSystem.extractUnit(u))
+                    latexify(UnitSystem.extract_unit(u))
                 end,
                 raw"$")
             for (name, u) in zip(names(data), data[1, :])
@@ -53,7 +53,7 @@ function data_to_LaTeX_table(io::IO, data::Calculation, @nospecialize(nameAliase
     # @show
     local ret = pretty_table(io,
         hcat((map(
-            LatexCell ∘ latexify ∘ UnitSystem.extractValue ∘ eval_with_units,
+            LatexCell ∘ latexify ∘ UnitSystem.extract_value ∘ eval_with_units,
             isa(v_list, Vector) ? v_list : [v_list])
               for (_, v_list) in data)...)
         ; backend=Val(:latex), alignment=:c, vlines=:all,
@@ -77,11 +77,11 @@ function data_to_LaTeX_table(io::IO, data::Calculation, @nospecialize(nameAliase
                     if elem_type <: Evaluatable
                         latexify(first_elem.unit)
                     elseif elem_type <: Unitful.AbstractQuantity
-                        latexify(UnitSystem.extractUnit(elem_type))
+                        latexify(UnitSystem.extract_unit(elem_type))
                     elseif elem_type <: Unitful.Unitlike
                         latexify(elem_type.instance())
                     else
-                        latexify(UnitSystem.extractUnit(first_elem))
+                        latexify(UnitSystem.extract_unit(first_elem))
                     end
                 end,
                 raw"$") |> LatexCell

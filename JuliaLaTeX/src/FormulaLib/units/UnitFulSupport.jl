@@ -9,22 +9,22 @@ if Core.eval(@__MODULE__, Expr(:isdefined, :Unitful))
     applyUnitTo(value::Unitful.Quantity, it::Unitful.Units) = Unitful.uconvert(it, value)
     # applyUnitTo(value::Number, it::Unitful.Quantity) = applyUnitTo(value, extractValueUnitFrom(it)[2])
 
-    extractUnit(it::Unitful.Quantity) =  Unitful.unit(it)
-    extractUnit(::Type{T}) where T<:Union{Unitful.Quantity, Unitful.Unitlike} =  Unitful.unit(T)
-    extractValue(it::Unitful.Quantity) = it.val
+    extract_unit(it::Unitful.Quantity) =  Unitful.unit(it)
+    extract_unit(::Type{T}) where T<:Union{Unitful.Quantity, Unitful.Unitlike} =  Unitful.unit(T)
+    extract_value(it::Unitful.Quantity) = it.val
 
-    extractUnit(it::Unitful.Units) = it
-    extractValue(::Unitful.Units) = nothing
+    extract_unit(it::Unitful.Units) = it
+    extract_value(::Unitful.Units) = nothing
 
     SI.toPreferred(value::Unitful.Quantity) = Unitful.uconvert(SI.preferredUnit(value), value)
 
     SI.preferredUnit(it::Number) = Unitful.NoUnits
-    SI.preferredUnit(it::Unitful.Quantity) = SI.preferredUnit(extractUnit(it))
+    SI.preferredUnit(it::Unitful.Quantity) = SI.preferredUnit(extract_unit(it))
     SI.preferredUnit(it::Unitful.Units) = SI.preferredUnit(Unitful.dimension(it))
     SI.preferredUnit(it::Unitful.Dimensions) = Unitful.upreferred(it)
     SI.preferredUnit(it::Unitful.Dimension) = Unitful.upreferred(it)
 
-    SI.convertExpr(value::Unitful.Quantity) = SI.convertExpr(extractUnit(value))
+    SI.convertExpr(value::Unitful.Quantity) = SI.convertExpr(extract_unit(value))
     # SI.convertExpr(value::Unitful.Units) = SI
     function SI.convertExpr(fromobj::Unitful.Units, targetobj::Unitful.Units)
         from = typeof(fromobj)
