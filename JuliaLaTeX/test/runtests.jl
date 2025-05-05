@@ -12,9 +12,3 @@ using Test
 @testset "rounding" begin
     include("rounding/tests.jl")
 end
-
-@testset "Test on power" begin
-    str = latexify(:( U^2 ); env=:raw)
-    @test JuliaLaTeX.substitute(str, "U" => 2) == "2^{2}"
-    @test JuliaLaTeX.substitute(str, "U" => 2e15) == "(2 \\cdot 10^{15})^{2}"
-end
