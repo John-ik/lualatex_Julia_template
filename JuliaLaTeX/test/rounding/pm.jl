@@ -18,7 +18,6 @@ let
     @test make_pm_result(1114, 7, -2) == 11.14333 ± 0.07
 
     @test make_pm_result(622, 12, 1) == 621.54 ± 11.7
-    @show 1.273 ± 0.023
     @test make_pm_result(1273, 25, -2) == 1.273 ± 0.023
     @test make_pm_result(432, 9, -2) == 4.316 ± 0.086
     @test make_pm_result(384, 8, -9) == 383.7e-9 ± 8.1e-9
