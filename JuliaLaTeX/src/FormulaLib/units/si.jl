@@ -1,10 +1,16 @@
 module SI
+const STD_NUMBERS = Base.parentmodule(@__MODULE__).STD_NUMBERS
+
+
 preferredUnit(::Nothing) = nothing
 preferredUnit(::Missing) = missing
-preferredUnit(::Main.STD_NUMBERS) = nothing
-function toPreferred(value::Main.STD_NUMBERS)
+preferredUnit(::STD_NUMBERS) = nothing
+function toPreferred(value::STD_NUMBERS)
     return value
 end
+
+include("convert_expr/init.jl")
+ConvertExpr.@safe_using using .ConvertExpr
 
 """
     convertExpr(any)=convertExpr(any,preferredUnit(any))
@@ -29,6 +35,7 @@ end
 """
 convertExpr(value)::Union{Function, Nothing} = convertExpr(value, preferredUnit(value))
 convertExpr(::Nothing, ::Nothing)::Union{Function, Nothing} = nothing
-convertExpr(value::Number, targetUnit::Union{Missing, Nothing})::Union{Function, Nothing} = identity
+convertExpr(value::Number, targetUnit::Union{Missing, Nothing})::Union{Function, Nothing} = IdentityConversionExpr{Nothing}()
+
 
 end
