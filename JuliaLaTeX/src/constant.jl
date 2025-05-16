@@ -21,9 +21,14 @@ constantList = Vector{Constant}()
 Base.show(io::IO, ::MIME"text/latex", c::Constant) = begin
     v = latexify(c.formula.expr.display; env=:raw)
     s = latexifyDisplayName(c.formula.displayName)
-    desc = something(description(Main, c.formula), "")
+    desc = string(something(description(Main, c.formula), ""))
+
     u = latexify(c.formula.expr.unit; env=:raw)
-    print(io, "$desc \$ $s = $v $u\$")
+    if occursin("%s", desc)
+        print(io, replace(desc, "%s" => "\$ $s = $v $u\$"))
+    else
+        print(io, "$desc \$ $s = $v $u\$")
+    end
 end
 
 reset_list!(::Type{Constant}) = empty!(constantList)
