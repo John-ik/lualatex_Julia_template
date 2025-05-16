@@ -65,21 +65,58 @@ function table2datax(io::IO, data::Calculation, name::String, permissions::Strin
     for (col_name::Symbol, list) in data
         list = ensure_iterable(list)
         el_type = eltype(list)
-        el_type != Evaluatable && continue
-        for (r::Int, elem::Evaluatable) in enumerate(list)
-            LaTeXDatax.printkeyval(io,
-                "calc/$col_name[$r]",
-                latexify(elem.displayCalculated; env=:raw)
-            )
-
-            f::Formula = Core.eval(eval_module(), col_name)
-
-            d = latexifyDisplayName(f.displayName)
-            LaTeXDatax.printkeyval(io,
-                "expr/$col_name[$r]",
-                latexify(Expr(:(=), LaTeXString(d), elem.displayCalculated); env=:raw)
-            )
+        for (r::Int, elem) in enumerate(list)
+            extra_datax(io, name, col_name, r, elem)
         end
     end
     reset_default()
+end
+
+function extra_datax(io::IO, title::String, col_name::Symbol, row_index::Int, data)
+    for m in methods(extra_datax, Tuple{IO,String,Symbol,Int,typeof(data),Val})
+        extra_datax(io, title, col_name, row_index, data, m.sig.parameters[end].instance)
+    end
+
+end
+amount_of_extra_datax(::T) where {T} = length(methods(extra_datax, Tuple{IO,String,Symbol,Int,T,Val}))
+
+
+
+
+macro comment(e)
+
+end
+macro extra_datax(expr)
+    @assert Meta.isexpr(expr, :function) "Only function declarations allowed"
+    #  @comment expr=Expr(expr)
+    function_head = expr.args[1]
+    if Meta.isexpr(function_head, :where)
+        function_head = function_head.args[1]
+    end
+
+    end_type = function_head.args[end]
+    type = if Meta.isexpr(end_type, :(::))
+        end_type.args[end]
+    else
+        :Any
+    end
+    function_head.args[1]=:extra_datax
+    push!(function_head.args, Expr(:(::), Expr(:curly, :Val, Expr(:call, GlobalRef(@__MODULE__, :amount_of_extra_datax), type))))
+    esc(expr)
+end
+
+
+@extra_datax function f(io::IO, ::String, col_name::Symbol, row_index::Int, data::Evaluatable)
+    LaTeXDatax.printkeyval(io,
+        "calc/$col_name[$row_index]",
+        latexify(data.displayCalculated; env=:raw)
+    )
+
+    f::Formula = Core.eval(eval_module(), col_name)
+
+    d = latexifyDisplayName(f.displayName)
+    LaTeXDatax.printkeyval(io,
+        "expr/$col_name[$row_index]",
+        latexify(Expr(:(=), LaTeXString(d), data.displayCalculated); env=:raw)
+    )
 end

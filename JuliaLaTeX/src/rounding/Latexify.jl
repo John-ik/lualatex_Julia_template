@@ -22,6 +22,10 @@ using Latexify
         return pm_expr
         # env --> :raw
     else
-        return Latexify.LaTeXString(string("\\left(", latexify(pm_expr;kwargs...),"\\right)", latexify(pm.unit;kwargs...)))
+        if (pm.e10 == 0)
+            return Latexify.LaTeXString(string("\\left(", latexify(pm_expr; kwargs...), "\\right)", latexify(pm.unit; kwargs...)))
+        else
+            return Latexify.LaTeXString(string(latexify(pm_expr; kwargs...), latexify(pm.unit; kwargs...)))
+        end
     end
 end

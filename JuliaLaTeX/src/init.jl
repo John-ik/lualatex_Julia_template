@@ -95,9 +95,40 @@ include("rounding/init.jl") #= @namedTime  =#
 
 #region rounding
 
-UnitSystem.extract_value(pm::PlusMinusResult)=PlusMinusResult(pm.int_value,pm.int_theta,pm.tail_size,pm.e10,nothing)
-UnitSystem.extract_unit(pm::PlusMinusResult)=pm.unit
+UnitSystem.extract_value(pm::PlusMinusResult) = PlusMinusResult(pm.int_value, pm.int_theta, pm.tail_size, pm.e10, nothing)
+UnitSystem.extract_unit(pm::PlusMinusResult) = pm.unit
 
+function toBaseUnit(pm::PlusMinusResult)
+    pref=UnitSystem.SI.preferredUnit(pm.unit)
+    pm.unit == pref && return pm
+    ±(float(pm)...,pref,pm.e10)
+end
+
+@extra_datax function f(io::IO, ::String, col_name::Symbol, row_index::Int, data::PlusMinusResult)
+    tail_ = tail_size(data)
+    value_ = print_fraction_with_e10(data.int_value, tail_ - 1)
+    theta_ = print_fraction_with_e10(data.int_theta, tail_ - 1)
+    function wrap(x)
+        data.e10==0 && return x
+        data.e10==1 && return Expr(:call,:*,x,10)
+        return Expr(:call,:*,x,Expr(:call,:^,10,data.e10))
+    end
+    
+    unit_expr= data.unit===nothing ? "" : latexify(data.unit;env=:raw,unitformat=:siunitx)
+    
+    LaTeXDatax.printkeyval(io,
+        "pm/value/$col_name[$row_index]", 
+        string(latexify(wrap(value_); env=:raw),unit_expr)
+    )
+    LaTeXDatax.printkeyval(io,
+        "pm/theta/$col_name[$row_index]", 
+        string(latexify(wrap(theta_); env=:raw),unit_expr)
+    )
+    LaTeXDatax.printkeyval(io,
+        "pm/both/$col_name[$row_index]", 
+        latexify(data; env=:raw,unitformat=:siunitx)
+    )
+end
 #endregion
 
 println()
@@ -109,7 +140,7 @@ function eval_with_units(expr::Evaluatable)
     try
         UnitSystem.applyUnitTo(Core.eval(eval_module(), expr.inlineWithUnits), expr.unit)
     catch e
-        error("expr cannot be evaluated '$expr': ",e)
+        error("expr cannot be evaluated '$expr': ", e)
     end
 end
 
