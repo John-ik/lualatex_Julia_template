@@ -1,11 +1,34 @@
 
 struct SimpleConversionExpr{From, To, plus, minus, irr, rat, e10} <: ConversionExpr{From, To}
 end
+struct SimpleConversionExprFields
+    plus::Number
+    minus::Number
+    irr::Number
+    rat::Number
+    e10::Number
+end
+
+
+SimpleConversionExprFields(::SimpleConversionExpr{From, To, plus, minus, irr, rat, e10}) where {From, To, plus, minus, irr, rat, e10} =
+    SimpleConversionExprFields(
+        plus, minus, irr, rat, e10,
+    )::SimpleConversionExprFields
+
 const IdentityConversionExpr{T} = SimpleConversionExpr{T, T, 0, 0, 1, 1, 0}
 # const IdentityConversionExpr{T} = IdentityConversionExpr{T<T}
-
+# SimpleConversionExpr(x::SimpleConversionExpr)=x
 @save_exported export SimpleConversionExpr
 @save_exported export IdentityConversionExpr
+
+
+is_identity(::SimpleConversionExpr) = false
+is_identity(::SimpleConversionExpr{From, To, 0, 0, 1, 1, 0}) where {From, To} = true
+
+is_scale_only(::SimpleConversionExpr) = false
+is_scale_only(::SimpleConversionExpr{From, To, 0, 0}) where {From, To} = true
+
+@save_exported export is_identity
 
 Base.broadcastable(x::SimpleConversionExpr) = Ref(x)
 function Base.fieldnames(::Type{SimpleConversionExpr})

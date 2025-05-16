@@ -1,5 +1,5 @@
-let 
-    make_pm_result(a::Int, b::Int, e10::Int, unit::Union{Nothing,Unitful.Unitlike}=nothing) = begin
+let
+    make_pm_result(a::Int, b::Int, e10::Int, unit::Union{Nothing, Unitful.Unitlike} = nothing) = begin
         tail_size = JuliaLaTeX.@switch b => {
             _ < 10 => 1;
             _ < 100 => 2;
@@ -22,8 +22,12 @@ let
     @test make_pm_result(432, 9, -2) == 4.316 ± 0.086
     @test make_pm_result(384, 8, -9) == 383.7e-9 ± 8.1e-9
 
-    @test make_pm_result(163, 4, -1) == (16+1/3) ± 1/3
+    @test make_pm_result(163, 4, -1) == (16 + 1 / 3) ± 1 / 3
     @test make_pm_result(184, 3, -1) == 18.350 ± 0.287
     @test make_pm_result(334, 3, -1) == 33.450 ± 0.287
     @test make_pm_result(335, 3, -1) == 33.451 ± 0.287
+
+
+
+    @test PlusMinusResult(113, 5, 1, 0, u"mm") == (11.3u"cm" ± 5u"mm") * u"mm"
 end

@@ -15,6 +15,10 @@ tail_size(result::RoundResult) = @switch (result.m1 + result.m2 * 10 + result.m3
     _ < 100 => 2;
     _ => 3;
 }
+
+dot_position(x::RoundResult) = tail_size(x) - 1
+exponent_10(x::RoundResult) = x.e10
+
 Base.show(io::IO, res::RoundResult) = begin
     print(io, res.m1, ".", res.m2)
     res.m3 != 0 && print(io, res.m3)
