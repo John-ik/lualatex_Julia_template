@@ -1,10 +1,6 @@
 
 
 let supported_int = Iterators.flatten((Base.BitInteger_types, [BigInt]))
-
-    for T in supported_int
-
-    end
     for target in supported_int
         target_name = Symbol(target.name.name)
         eval(quote
