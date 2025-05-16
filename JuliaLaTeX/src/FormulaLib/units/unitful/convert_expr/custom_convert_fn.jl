@@ -26,25 +26,28 @@ function ____custom_convert(s::Type{<:Units}, t::Type{<:Units})
             den ÷= 10
             e10 -= 1
         end
-        while den & 1 == 0
-            den >>>= 1
-            num *= 5
-            e10 -= 1
-        end
-        while den % 5 == 0
-            den ÷= 5
-            num *= 2
-            e10 -= 1
-        end
-        while num & 1 == 0
-            num >>>= 1
-            den *= 5
-            e10 += 1
-        end
-        while num % 5 == 0
-            num ÷= 5
-            den *= 2
-            e10 += 1
+        if den & 1 == 0 || den % 5 == 0
+            while den & 1 == 0
+                den >>>= 1
+                num *= 5
+                e10 -= 1
+            end
+            while den % 5 == 0
+                den ÷= 5
+                num *= 2
+                e10 -= 1
+            end
+        else
+            while num & 1 == 0
+                num >>>= 1
+                den *= 5
+                e10 += 1
+            end
+            while num % 5 == 0
+                num ÷= 5
+                den *= 2
+                e10 += 1
+            end
         end
         ex = num // den
     else
