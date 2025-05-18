@@ -70,6 +70,10 @@ end
 function Base.show(io::IO, ::MIME"text/latex", formula::Formula)
     # iscompact = get(io, :compact, false)::Bool # check if compact provided
     desc = description(Main, formula)
+    if desc === nothing
+        @warn LazyString("Formula '",formula.name,"' has no description!!")
+        return print(io,latexify(formula))
+    end
     string_io = IOContext(IOBuffer())
     show(string_io, MIME"text/latex"(), desc)
     desc_s = strip(String(take!(string_io.io)))
