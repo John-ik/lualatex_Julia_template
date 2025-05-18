@@ -1,5 +1,6 @@
 include("exp_number.jl")
 include("from_float.jl")
+include("from_rational.jl")
 include("operations.jl")
 include("convertions.jl")
 include("show_exp_number.jl")
