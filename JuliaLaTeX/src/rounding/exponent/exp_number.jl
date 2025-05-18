@@ -13,6 +13,9 @@ end
 function Base.promote_rule(::Type{ExponentNumber{A}}, ::Type{T}) where {A <: Integer, T <: Base.BitInteger}
     return ExponentNumber{promote_type(A, T)}
 end
+function Base.promote_rule(::Type{ExponentNumber{A}}, ::Type{ExponentNumber{B}}) where {A <: Integer, B <: Integer}
+    return ExponentNumber{promote_type(A, B)}
+end
 ExponentNumber(n::T) where {T <: Base.BitInteger} = ExponentNumber{T}(n)
 function ExponentNumber{T}(n::N) where {T <: Integer, N <: Base.BitInteger}
     ten = N(10)
