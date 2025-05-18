@@ -6,6 +6,17 @@ include("convertions.jl")
 include("show_exp_number.jl")
 include("unitsystem_support.jl")
 
+function exponent_number_to_float(x::ExponentNumber{BigInt})
+    a = BigFloat(2)^real_exponent(x)
+    b = x.int_value * BigFloat(5)^real_exponent(x)
+    return a * b
+end
+function exponent_number_to_float(x::ExponentNumber)
+    a = 2.0^real_exponent(x)
+    b = x.int_value * 5.0^real_exponent(x)
+    return a * b
+end
+
 
 function clear_garbage(x::ExponentNumber{T}, max_deep::Int = 15) where T <: Integer
     (x.dot_position < max_deep) && (return x)
