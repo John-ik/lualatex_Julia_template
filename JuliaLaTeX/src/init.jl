@@ -22,7 +22,7 @@ println("}", @__FILE__, "\n\n")
     eval_with_units
 # export  @Lr_str, @test, process_greek, substitute
 
-import Unitful
+using Unitful: Unitful
 
 
 if !isdefined(Main, :____was__JuliaLatex)
@@ -34,8 +34,8 @@ if !isdefined(Main, :____was__JuliaLatex)
     Main.UnitfulLatexify_PrevF = last(methods(Latexify.Latexify.apply_recipe, Tuple{Unitful.AbstractQuantity}))
 end
 @latexrecipe function f(
-    q::T; unitformat=:mathrm, siunitxlegacy=false
-) where {T<:Unitful.AbstractQuantity}
+    q::T; unitformat = :mathrm, siunitxlegacy = false,
+) where {T <: Unitful.AbstractQuantity}
     operation := :*
     if unitformat === :mathrm || siunitxlegacy
         return Main.UnitfulLatexify_PrevF(q; :unitformat => unitformat, :siunitxlegacy => siunitxlegacy)
@@ -54,7 +54,7 @@ function Base.show(io::IO, ::MIME"text/markdown", s::LaTeXString)
     else
         output = m.captures[1]
     end
-    print(io, start * output * theend)
+    return print(io, start * output * theend)
 end
 
 
@@ -65,18 +65,21 @@ function toBaseUnit(quantity::Unitful.AbstractQuantity)::Unitful.AbstractQuantit
         UnitSystem.SI.toPreferred(quantity)
     end
 end
+function toBaseUnit(::Nothing)
+    return nothing
+end
 
 function toBaseUnitStrip(quantity)::Number
-    toBaseUnit(quantity) |> ustrip |> float
+    return toBaseUnit(quantity) |> ustrip |> float
 end
 
 function inlineConstants(expr::Expr)
     return inlineConstAndVars(expr;
-        mapper=(v, s) -> begin
+        mapper = (v, s) -> begin
             !(typeof(v) <: Number) ? s :
             JuliaLaTeX.aliasUnwrap(JuliaLaTeX.toBaseUnitStrip(v), s)
         end,
-        m=Main
+        m = Main,
     )[1]
 end
 
@@ -99,9 +102,9 @@ UnitSystem.extract_value(pm::PlusMinusResult) = PlusMinusResult(pm.int_value, pm
 UnitSystem.extract_unit(pm::PlusMinusResult) = pm.unit
 
 function toBaseUnit(pm::PlusMinusResult)
-    pref=UnitSystem.SI.preferredUnit(pm.unit)
+    pref = UnitSystem.SI.preferredUnit(pm.unit)
     pm.unit == pref && return pm
-    ±(float(pm)...,pref,pm.e10)
+    return ±(float(pm)..., pref, pm.e10)
 end
 
 @extra_datax function f(io::IO, ::String, col_name::Symbol, row_index::Int, data::PlusMinusResult)
@@ -109,31 +112,31 @@ end
     value_ = print_fraction_with_e10(data.int_value, tail_ - 1)
     theta_ = print_fraction_with_e10(data.int_theta, tail_ - 1)
     function wrap(x)
-        data.e10==0 && return x
-        data.e10==1 && return Expr(:call,:*,x,10)
-        return Expr(:call,:*,x,Expr(:call,:^,10,data.e10))
+        data.e10 == 0 && return x
+        data.e10 == 1 && return Expr(:call, :*, x, 10)
+        return Expr(:call, :*, x, Expr(:call, :^, 10, data.e10))
     end
-    
-    unit_expr= data.unit===nothing ? "" : latexify(data.unit;env=:raw,unitformat=:siunitx)
-    
+
+    unit_expr = data.unit === nothing ? "" : latexify(data.unit; env = :raw, unitformat = :siunitx)
+
     LaTeXDatax.printkeyval(io,
-        "pm/value/$col_name[$row_index]", 
-        string(latexify(wrap(value_); env=:raw),unit_expr)
+        "pm/value/$col_name[$row_index]",
+        string(latexify(wrap(value_); env = :raw), unit_expr),
     )
     LaTeXDatax.printkeyval(io,
-        "pm/theta/$col_name[$row_index]", 
-        string(latexify(wrap(theta_); env=:raw),unit_expr)
+        "pm/theta/$col_name[$row_index]",
+        string(latexify(wrap(theta_); env = :raw), unit_expr),
     )
-    LaTeXDatax.printkeyval(io,
-        "pm/both/$col_name[$row_index]", 
-        latexify(data; env=:raw,unitformat=:siunitx)
+    return LaTeXDatax.printkeyval(io,
+        "pm/both/$col_name[$row_index]",
+        latexify(data; env = :raw, unitformat = :siunitx),
     )
 end
 #endregion
 
 println()
 println()
-function eval_with_units(expr::Number)
+function eval_with_units(expr::Union{Number, Nothing})
     return expr
 end
 function eval_with_units(expr::Evaluatable)
@@ -143,6 +146,8 @@ function eval_with_units(expr::Evaluatable)
         error("expr cannot be evaluated '$expr': ", e)
     end
 end
+
+
 
 function toBaseUnit(expr::Evaluatable)
     try
