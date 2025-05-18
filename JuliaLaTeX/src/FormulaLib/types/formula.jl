@@ -1,7 +1,7 @@
 
 mutable struct Formula
     name::Symbol
-    displayName::Expression
+    displayName::Union{Expression,String,LaTeXString}
     expr::Evaluatable
     #= 
         function Formula(name::Symbol,
