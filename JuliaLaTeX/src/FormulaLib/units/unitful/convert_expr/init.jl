@@ -5,7 +5,7 @@ include("special_units.jl")
 
 function SI.convertExpr(fromobj::Unitful.Units, targetobj::Unitful.Units)
     from = typeof(fromobj)
-    fromobj == targetobj && return IdentityConversionExpr()
+    fromobj == targetobj && return SI.ConvertExpr.IdentityConversionExpr{from}()
     target = typeof(targetobj)
 
     t0 = from <: Unitful.AffineUnits ? from.parameters[end][end] : 0
