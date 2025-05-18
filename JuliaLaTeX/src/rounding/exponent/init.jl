@@ -41,10 +41,10 @@ function clear_garbage(x::ExponentNumber{T}, max_deep::Int = 15) where T <: Inte
     end
 
 
-    new_dot_pos=max_deep - extra_e10
-    if new_dot_pos<0
-        return ExponentNumber{T}(out_part, 0, -new_dot_pos+x.e10)
+    new_dot_pos = max_deep - extra_e10
+    if new_dot_pos < 0
+        return ExponentNumber{T}(out_part, 0, -new_dot_pos + x.e10)
     else
-        return ExponentNumber{T}(out_part, new_dot_pos, x.e10 )
+        return ExponentNumber{T}(out_part, new_dot_pos, x.e10)
     end
 end
