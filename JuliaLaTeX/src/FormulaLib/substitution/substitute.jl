@@ -82,7 +82,13 @@ function substitute((it,)::ValRef{:calcLater}, ctx::SubstitutionContext)
     catch e
         ctx.isUnitLess = prevU
         ctx.isCalcLater = false
-        error("Error while 'calcLater' '$it' \n", ctx, "\n", e)
+        mime=MIME"text/plain"()
+        print(stderr, " it = ")
+        show(stderr,mime,it)
+        print(stderr, "\n ctx = ")
+        show(stderr,mime,ctx)
+        print(stderr, "\n")
+        rethrow(e)
     end
 end
 
